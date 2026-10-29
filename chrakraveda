@@ -1,0 +1,694 @@
+import React, { useState, useEffect, useRef } from "react";
+import { LayoutDashboard, FlaskConical, Bot, Code2, Gamepad2, Lock, CheckCircle2, Copy, Check, Send, Play, Cpu, TrendingUp, Award, Zap, Loader2, Activity, Timer, X, Rocket, Search, Library } from "lucide-react";
+
+/* ============================ SHARED ============================ */
+const TABS = [["dash", "Dashboard", LayoutDashboard], ["lab", "Lab Sandbox", FlaskConical], ["ai", "AI Copilot", Bot], ["code", "Code Workspace", Code2], ["trivia", "Circuit Trivia", Gamepad2], ["lib", "Component Library", Library]];
+const BTN = "flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all active:scale-95 cursor-pointer disabled:opacity-50 ";
+const GLASS = { background: "rgba(15,23,42,.8)" };
+const Card = ({ c = "", bd = "border-slate-700", children }) => <div className={"bg-slate-800 border rounded-xl p-4 " + bd + " " + c}>{children}</div>;
+const H = ({ I, k, children }) => <h2 className="flex items-center gap-2 text-lg font-bold mb-3"><I className={"w-5 h-5 " + k} />{children}</h2>;
+
+/* Mini markdown: **bold**, {{inline code}}, ~~~fenced code~~~, "- " bullets */
+const inl = (s) => s.split(/(\*\*[^*]+\*\*|\{\{[^}]+\}\})/).map((p, i) =>
+  p.startsWith("**") ? <b key={i} className="text-cyan-300">{p.slice(2, -2)}</b>
+  : p.startsWith("{{") ? <code key={i} className="px-1 rounded bg-slate-800 text-violet-300 text-xs font-mono">{p.slice(2, -2)}</code> : p);
+
+function Code({ code }) {
+  const [ok, setOk] = useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(code); }
+    catch (e) { const t = document.createElement("textarea"); t.value = code; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (_) {} t.remove(); }
+    setOk(true); setTimeout(() => setOk(false), 1500);
+  };
+  return (
+    <div className="my-2 rounded-lg border border-slate-700 overflow-hidden">
+      <div className="flex justify-between items-center px-3 py-1 bg-slate-700 text-xs text-slate-300">
+        <span>snippet</span>
+        <button onClick={copy} className="flex items-center gap-1 hover:text-cyan-300 active:scale-95 transition-all cursor-pointer">
+          {ok ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}{ok ? "Copied!" : "Copy"}
+        </button>
+      </div>
+      <pre className="p-3 overflow-x-auto text-xs font-mono text-emerald-300 bg-slate-900">{code}</pre>
+    </div>
+  );
+}
+
+const Md = ({ t }) => t.split("~~~").map((s, i) => i % 2
+  ? <Code key={i} code={s.replace(/^\w*\n/, "").trimEnd()} />
+  : <div key={i} className="space-y-1.5">{s.trim().split("\n").map((l, j) => l && <p key={j} className={l.startsWith("- ") ? "pl-3" : ""}>{l.startsWith("- ") && "• "}{inl(l.replace(/^- /, ""))}</p>)}</div>);
+
+/* ====================== MODULE 1: DASHBOARD ====================== */
+const ST = { Verified: [CheckCircle2, "bg-emerald-500", "text-emerald-400"], Active: [Activity, "bg-amber-500", "text-amber-400"], Locked: [Lock, "bg-slate-600", "text-slate-400"] };
+const NODES = [
+  { t: "Digital Logic Systems", s: "Verified", tab: "lab", lab: "gate", subs: ["Boolean algebra & K-maps", "Combinational circuits", "Flip-flops & counters", "Finite state machines"], why: "Gates and flip-flops sit under every CPU, FPGA and microcontroller. This is how you debug address decoders, glue logic and state machines on real boards." },
+  { t: "IoT & Sensors", s: "Active", tab: "lab", lab: "scope", subs: ["ADC & sensor interfacing", "I2C, SPI and UART buses", "MQTT over ESP32 Wi-Fi", "Low-power design"], why: "Smart-agriculture nodes, industrial monitors and wearables all depend on clean ADC readings, reliable buses and a tight power budget." },
+  { t: "Signal Processing & DSP", s: "Locked", tab: "lab", lab: "scope", subs: ["Sampling & aliasing", "FIR and IIR filters", "FFT & spectrum analysis", "Convolution"], why: "DSP drives audio codecs, radar, 5G baseband and vibration analysis, turning noisy samples into decisions." },
+  { t: "AI at the Edge", s: "Locked", tab: "ai", subs: ["TinyML workflow", "Quantization", "TensorFlow Lite Micro", "Sensor fusion"], why: "Keyword spotting and anomaly detection now run on milliwatt microcontrollers, cutting latency, bandwidth and privacy risk." },
+];
+
+const Ring = ({ p }) => {
+  const r = 20, c = 2 * Math.PI * r;
+  return (
+    <svg width="56" height="56" viewBox="0 0 56 56">
+      <circle cx="28" cy="28" r={r} stroke="#334155" strokeWidth="6" fill="none" />
+      <circle cx="28" cy="28" r={r} stroke="#10b981" strokeWidth="6" fill="none" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - p)} transform="rotate(-90 28 28)" />
+    </svg>
+  );
+};
+
+function Dashboard({ queries, wins, launch }) {
+  const [sel, setSel] = useState(null);
+  const M = [
+    ["Labs Completed", "14/20", <Ring p={0.7} />, "70% of the lab track"],
+    ["Avg Quiz Accuracy", "88%", <TrendingUp className="w-12 h-12 text-emerald-400" />, "Up 4% this week"],
+    ["Debug Challenges Won", wins, <Award className="w-12 h-12 text-amber-400" />, "Badge: Bug Hunter"],
+    ["AI Assistant Queries", queries, <Bot className="w-12 h-12 text-violet-400" />, "tokens consumed"],
+  ];
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {M.map(([l, v, ic, s]) => (
+          <div key={l} className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center justify-between hover:scale-105 hover:border-cyan-500 transition-all cursor-default">
+            <div><p className="text-sm text-slate-400">{l}</p><p className="text-3xl font-bold my-1">{v}</p><p className="text-xs text-emerald-400">{s}</p></div>{ic}
+          </div>
+        ))}
+      </div>
+      <Card>
+        <H I={Rocket} k="text-cyan-400">Curriculum roadmap</H>
+        <div className="relative ml-3 pl-8 space-y-4 border-l-2 border-slate-700">
+          {NODES.map((n, i) => {
+            const [Ic, dot, tx] = ST[n.s];
+            return (
+              <button key={i} onClick={() => setSel(n)} className="relative block w-full text-left bg-slate-900 border border-slate-700 hover:border-cyan-500 rounded-xl p-4 transition-all active:scale-95 cursor-pointer">
+                <span className={"absolute top-5 w-4 h-4 rounded-full " + dot} style={{ left: -41 }} />
+                <span className="flex items-center justify-between gap-2">
+                  <span className="font-semibold">Node {i + 1}: {n.t}</span>
+                  <span className={"flex items-center gap-1 text-xs shrink-0 " + tx}><Ic className="w-4 h-4" />{n.s}</span>
+                </span>
+                <span className="block text-xs text-slate-400 mt-1">{n.subs.length} sub-topics. Tap for details.</span>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+      {sel && (
+        <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(2,6,23,.7)" }} onClick={() => setSel(null)}>
+          <aside onClick={(e) => e.stopPropagation()} className="w-full sm:w-96 h-full bg-slate-800 border-l border-slate-700 p-6 overflow-y-auto">
+            <div className="flex justify-between items-start">
+              <h3 className="text-xl font-bold">{sel.t}</h3>
+              <button onClick={() => setSel(null)} aria-label="Close" className="p-1 text-slate-400 hover:text-white active:scale-95 cursor-pointer"><X className="w-5 h-5" /></button>
+            </div>
+            <p className={"text-sm mt-1 " + ST[sel.s][2]}>Status: {sel.s}</p>
+            <h4 className="font-semibold mt-5 mb-1">Real-world relevance</h4>
+            <p className="text-sm text-slate-300">{sel.why}</p>
+            <h4 className="font-semibold mt-5 mb-2">Sub-topics</h4>
+            <ul className="space-y-2">{sel.subs.map((s) => <li key={s} className="flex items-center gap-2 text-sm text-slate-300"><CheckCircle2 className="w-4 h-4 text-cyan-400" />{s}</li>)}</ul>
+            <button onClick={() => { launch(sel); setSel(null); }} className={BTN + "w-full mt-6 bg-cyan-500 text-slate-900 hover:bg-cyan-400"}><Rocket className="w-4 h-4" />{sel.s === "Locked" ? "Preview module" : "Launch module"}</button>
+          </aside>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ====================== MODULE 2: LAB SANDBOX ====================== */
+const GATES = { AND: (a, b) => a & b, OR: (a, b) => a | b, XOR: (a, b) => a ^ b, NAND: (a, b) => +!(a & b), NOT: (a) => +!a };
+
+const Switch = ({ label, v, set, dim }) => (
+  <button role="switch" aria-checked={v === 1} onClick={() => set(1 - v)} className={"flex items-center justify-between w-full gap-3 bg-slate-900 border border-slate-700 hover:border-cyan-500 rounded-lg px-3 py-2 transition-all active:scale-95 cursor-pointer " + (dim ? "opacity-40" : "")}>
+    <span className="text-sm font-semibold">{label}</span>
+    <span className="flex items-center gap-2">
+      <span className={"font-mono font-bold " + (v ? "text-cyan-400" : "text-slate-500")}>{v}</span>
+      <span className={"w-12 h-6 rounded-full p-1 transition-all " + (v ? "bg-cyan-500" : "bg-slate-600")}><span className={"block w-4 h-4 rounded-full bg-white transition-all " + (v ? "translate-x-6" : "")} /></span>
+    </span>
+  </button>
+);
+
+function Gate() {
+  const [a, setA] = useState(0), [b, setB] = useState(0), [g, setG] = useState("AND");
+  const q = GATES[g](a, b), col = (v) => (v ? "#22d3ee" : "#475569");
+  return (
+    <div className="space-y-4">
+      <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div className="space-y-3"><Switch label="Input A" v={a} set={setA} /><Switch label="Input B" v={b} set={setB} dim={g === "NOT"} /></div>
+          <div>
+            <select value={g} onChange={(e) => setG(e.target.value)} className="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 outline-none rounded-lg px-3 py-2 text-sm cursor-pointer">
+              {Object.keys(GATES).map((k) => <option key={k}>{k}</option>)}
+            </select>
+            <svg viewBox="0 0 200 120" className="w-full h-32 mt-2" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M0 30H60V48H80" stroke={col(a)} />
+              <path d="M0 90H60V72H80" stroke={col(g === "NOT" ? 0 : b)} />
+              <rect x="80" y="38" width="40" height="44" rx="6" fill="#0f172a" stroke={col(q)} />
+              <text x="100" y="65" textAnchor="middle" fill="#e2e8f0" fontSize="11" fontWeight="700" stroke="none">{g}</text>
+              <path d="M120 60H200" stroke={col(q)} />
+            </svg>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <svg viewBox="0 0 100 124" className="w-24 h-32" style={{ filter: q ? "drop-shadow(0 0 14px #fbbf24)" : "none" }}>
+              <path d="M50 8C28 8 16 26 16 44c0 14 8 22 14 30 3 4 4 8 4 14h32c0-6 1-10 4-14 6-8 14-16 14-30C84 26 72 8 50 8Z" fill={q ? "#fde68a" : "#1e293b"} stroke={q ? "#fbbf24" : "#475569"} strokeWidth="3" />
+              <rect x="34" y="92" width="32" height="8" rx="2" fill="#64748b" /><rect x="38" y="102" width="24" height="8" rx="2" fill="#475569" />
+            </svg>
+            <p className="font-mono font-bold text-lg">Output Q: <span className={q ? "text-cyan-400" : "text-slate-500"}>{q}</span></p>
+          </div>
+        </div>
+      </Card>
+      <Card>
+        <h3 className="font-semibold mb-2">Truth table: {g}</h3>
+        <table className="w-full text-center text-sm font-mono">
+          <thead><tr className="text-slate-400"><th className="py-1">A</th><th>B</th><th>Q</th></tr></thead>
+          <tbody>{[[0, 0], [0, 1], [1, 0], [1, 1]].map(([x, y]) => {
+            const on = x === a && y === b;
+            return <tr key={x + "" + y} className={on ? "text-emerald-400 font-bold bg-slate-900" : "text-slate-300"}><td className="py-1">{x}</td><td>{y}</td><td>{GATES[g](x, y)}</td></tr>;
+          })}</tbody>
+        </table>
+      </Card>
+    </div>
+  );
+}
+
+const Slider = ({ l, v, set, min, max, step = 1 }) => (
+  <label className="block text-sm">
+    <span className="flex justify-between mb-1 text-slate-300"><span>{l}</span><span className="font-mono text-cyan-400">{v}</span></span>
+    <input type="range" min={min} max={max} step={step} value={v} onChange={(e) => set(+e.target.value)} className="w-full cursor-pointer accent-cyan-500" />
+  </label>
+);
+
+function Scope({ active }) {
+  const [f, setF] = useState(3), [n, setN] = useState(20), [t, setT] = useState(0);
+  useEffect(() => { if (!active) return; const id = setInterval(() => setT((x) => x + 1), 100); return () => clearInterval(id); }, [active]);
+  let d = "";
+  for (let i = 0; i <= 150; i++) d += (i ? "L" : "M") + i * 4 + "," + (100 - 60 * Math.sin((2 * Math.PI * f * i) / 150 + t * 0.3) + (Math.random() - 0.5) * n * 0.6).toFixed(1);
+  const grid = Array.from({ length: 11 }, (_, i) => "M" + i * 60 + " 0V200").join("") + "M0 50H600M0 100H600M0 150H600";
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <Card c="space-y-5 h-fit">
+        <H I={Activity} k="text-cyan-400">Controls</H>
+        <Slider l="Sensor Sampling Frequency (Hz)" v={f} set={setF} min={1} max={10} />
+        <Slider l="Signal Noise Level" v={n} set={setN} min={0} max={100} />
+        <p className="text-xs text-slate-400">Higher frequency packs more cycles into the 1 s window. Noise adds a random offset to every sample, like ADC quantization and thermal noise degrading a clean signal.</p>
+      </Card>
+      <Card c="lg:col-span-2">
+        <div className="flex justify-between text-xs text-slate-400 mb-2"><span>CH1 | window: 1 s</span><span className="text-cyan-400">LIVE</span></div>
+        <svg viewBox="0 0 600 200" className="w-full bg-slate-900 rounded-lg border border-slate-700">
+          <path d={grid} stroke="#1e293b" strokeWidth="1" fill="none" />
+          <path d={d} stroke="#22d3ee" strokeWidth="2" fill="none" strokeLinejoin="round" />
+        </svg>
+      </Card>
+    </div>
+  );
+}
+
+function Lab({ sub, setSub, active }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {[["gate", "Logic Gate Simulator"], ["scope", "Oscilloscope & Sensor Waveform"]].map(([k, l]) => (
+          <button key={k} onClick={() => setSub(k)} className={BTN + (sub === k ? "bg-cyan-500 text-slate-900" : "bg-slate-800 border border-slate-700 text-slate-300 hover:border-cyan-500")}>{l}</button>
+        ))}
+      </div>
+      {sub === "gate" ? <Gate /> : <Scope active={active} />}
+    </div>
+  );
+}
+
+/* ====================== MODULE 3: AI COPILOT ====================== */
+const R = [
+`**Diagnosis:** the compiler cannot find the {{Serial}} object (an instance of {{HardwareSerial}}). It is almost always one of these:
+- **Case typo:** {{serial.begin()}} instead of {{Serial.begin()}}. C++ is case-sensitive.
+- **Wrong board or core:** ATtiny85 and similar cores have no hardware UART. Check Tools > Board.
+- **Missing header** in a .cpp or PlatformIO file. Add {{#include <Arduino.h>}}.
+- **Wrong scope:** {{Serial}} used in a class file that never included Arduino.h.
+**Corrected sketch:**
+~~~cpp
+#include <Arduino.h>
+
+void setup() {
+  Serial.begin(9600);          // capital S; baud must match the monitor
+  while (!Serial) { }          // wait for USB-serial (Leonardo/ESP32)
+  Serial.println(F("Boot OK"));
+}
+
+void loop() { }
+~~~
+**Verify:** open the Serial Monitor at 9600 baud and confirm "Boot OK". On an ATtiny use {{SoftwareSerial}} on two free pins.`,
+`**Nyquist-Shannon theorem:** a band-limited signal with highest frequency {{f_max}} is perfectly reconstructable only if {{fs ≥ 2·f_max}}. {{2·f_max}} is the **Nyquist rate**; {{fs/2}} is the **Nyquist frequency**.
+- **Aliasing:** a tone above {{fs/2}} folds back to {{|f − k·fs|}} and is indistinguishable from a real low-frequency tone.
+- **Anti-alias filter:** low-pass the analog input below {{fs/2}} before the ADC.
+- **Example:** a 7 kHz tone sampled at 10 kHz shows up as a false 3 kHz tone.
+~~~c
+float aliasFreq(float f, float fs) {
+  float r = fmodf(f, fs);
+  return (r > fs / 2) ? fs - r : r;   // folded frequency
+}
+// aliasFreq(7000, 10000) -> 3000 Hz
+~~~
+**Engineering rule:** sample at 2.5x to 10x f_max in practice (audio uses 44.1 kHz for 20 kHz content) so the filter has room to roll off. Try it on the Lab Sandbox oscilloscope.`,
+`**Hardware:** SSD1306 128x64 I2C OLED to ESP32 (3.3 V logic).
+- **VCC to 3V3, GND to GND**
+- **SDA to GPIO21, SCL to GPIO22** (default I2C pins; remap with {{Wire.begin(sda, scl)}})
+- Default address is {{0x3C}} (some modules use {{0x3D}}). Most breakouts have pull-ups; otherwise add 4.7 kΩ to 3V3.
+**Libraries:** install {{Adafruit SSD1306}} and {{Adafruit GFX}} from the Library Manager.
+~~~cpp
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+Adafruit_SSD1306 oled(128, 64, &Wire, -1);
+
+void setup() {
+  Wire.begin(21, 22);
+  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    for (;;);                  // halt: display not found
+  }
+  oled.clearDisplay();
+  oled.setTextSize(2);
+  oled.setTextColor(SSD1306_WHITE);
+  oled.setCursor(0, 0);
+  oled.println("ChakraVeda");
+  oled.display();
+}
+
+void loop() { }
+~~~
+**Debug tip:** if the screen stays blank, run an I2C scanner sketch to confirm the address.`,
+];
+const GEN = (q) => `**Analysing:** "${q.slice(0, 80)}"
+I have no scripted deep-dive for that yet, but this is the fault-isolation routine I would apply:
+- **Power first:** verify rails (5 V / 3.3 V within 5%) and a common ground between all boards.
+- **Isolate:** shrink to a minimal sketch that reproduces the fault.
+- **Observe:** add debug prints and watch the signal on a scope or logic analyzer.
+~~~cpp
+#define DBG(x) Serial.println(x)
+void setup() { Serial.begin(115200); DBG(F("boot")); }
+void loop() { }
+~~~
+Tap a quick query for a full walkthrough on Arduino errors, Nyquist sampling, or an I2C OLED on ESP32.`;
+
+const PILLS = ["Fix Arduino Error: 'Serial' was not declared in this scope", "Explain Nyquist Sampling Theorem clearly", "How do I interface an I2C OLED display with ESP32?"];
+const reply = (q) => /serial/i.test(q) ? R[0] : /nyquist|alias|sampling/i.test(q) ? R[1] : /i2c|oled|esp32/i.test(q) ? R[2] : GEN(q);
+
+function Copilot({ onQuery }) {
+  const [m, setM] = useState([{ r: "bot", t: "**ENTC-Bot online.** Ask about Arduino errors, ESP32 interfacing, DSP or analog design, or tap a quick query." }]);
+  const [v, setV] = useState(""), [ld, setLd] = useState(false), box = useRef(null);
+  useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [m, ld]);
+  const send = (q) => {
+    q = q.trim(); if (!q || ld) return;
+    setM((x) => [...x, { r: "user", t: q }]); setV(""); setLd(true); onQuery();
+    setTimeout(() => { setM((x) => [...x, { r: "bot", t: reply(q) }]); setLd(false); }, 1200);
+  };
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <Card c="space-y-2 h-fit">
+        <H I={Zap} k="text-violet-400">Quick queries</H>
+        {PILLS.map((p) => <button key={p} disabled={ld} onClick={() => send(p)} className="w-full text-left text-sm bg-slate-900 border border-slate-700 hover:border-violet-500 rounded-xl px-3 py-2 transition-all active:scale-95 cursor-pointer disabled:opacity-50">{p}</button>)}
+      </Card>
+      <Card c="lg:col-span-2 flex flex-col">
+        <div ref={box} className="overflow-y-auto space-y-3 pr-1" style={{ height: "60vh" }}>
+          {m.map((x, i) => (
+            <div key={i} className={"flex " + (x.r === "user" ? "justify-end" : "")}>
+              <div className={"min-w-0 max-w-full sm:max-w-xl rounded-xl px-3 py-2 text-sm leading-relaxed border " + (x.r === "user" ? "bg-slate-700 border-slate-600" : "bg-slate-900 border-violet-500")}>{x.r === "bot" ? <Md t={x.t} /> : x.t}</div>
+            </div>
+          ))}
+          {ld && (
+            <div className="flex items-center gap-2 text-sm text-violet-300">
+              <span className="flex gap-1">{[0, 1, 2].map((d) => <span key={d} className="w-2 h-2 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: d * 150 + "ms" }} />)}</span>
+              ENTC-Bot compiling explanation...
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 mt-3">
+          <input value={v} onChange={(e) => setV(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send(v)} placeholder="Ask an ENTC question..." className="flex-1 min-w-0 bg-slate-900 border border-slate-700 focus:border-violet-500 outline-none rounded-lg px-3 py-2 text-sm" />
+          <button onClick={() => send(v)} disabled={ld || !v.trim()} aria-label="Send" className={BTN + "bg-violet-500 text-white hover:bg-violet-400"}><Send className="w-4 h-4" /></button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ====================== MODULE 4: CODE PLAYGROUND ====================== */
+const START = "const int TEMP_PIN = A0;\nconst int FAN_PIN = 13;\n\nvoid setup() {\n  // configure pins and serial here\n}\n\nvoid loop() {\n  // read A0, convert to degrees C, drive the fan here\n}\n";
+const L = (t, c) => ({ t, c });
+const ERR = ["[ERROR] Initializing Compiler...", "sketch.ino: In function 'int main()':", "sketch.ino:1:1: error: 'setup' was not declared in this scope", "sketch.ino:1:1: error: 'loop' was not declared in this scope", "core/main.cpp:46: undefined reference to `setup'", "core/main.cpp:49: undefined reference to `loop'", "collect2: error: ld returned 1 exit status", "[FATAL] Compilation failed with 4 errors. 0 bytes written."].map((t) => L(t, "text-red-400"));
+
+function Playground({ onWin }) {
+  const [code, setCode] = useState(START), [log, setLog] = useState([]), [busy, setBusy] = useState(false), [pct, setPct] = useState(0), [won, setWon] = useState(false);
+  const lines = code.split("\n");
+  const compile = () => {
+    if (busy) return;
+    setBusy(true); setPct(0); setLog([]);
+    const t0 = Date.now(), iv = setInterval(() => {
+      const p = Math.min(100, (Date.now() - t0) / 15); setPct(p);
+      if (p >= 100) {
+        clearInterval(iv); setBusy(false);
+        setLog(code.trim() ? [L("[INFO] Initializing Compiler...", "text-cyan-300"), L("[SUCCESS] Sketch compiled cleanly. 14,240 bytes written to partition.", "text-emerald-400")] : ERR);
+      }
+    }, 50);
+  };
+  const run = () => {
+    const s = code.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "");
+    const T = [
+      ["Reads analog input A0", /analogRead\s*\(/.test(s) && /\bA0\b/.test(s)],
+      ["Compares against the 75°C threshold", /\b75\b/.test(s)],
+      ["Configures pin 13 as OUTPUT", /pinMode\s*\([^)]*,\s*OUTPUT\s*\)/.test(s) && /\b13\b/.test(s)],
+      ["Drives the fan pin HIGH", /digitalWrite\s*\([^)]*,\s*HIGH\s*\)/.test(s)],
+    ];
+    const bad = T.filter((x) => !x[1]).length;
+    setLog([
+      L("[INFO] Running 4 tests...", "text-cyan-300"),
+      ...T.map(([n, p]) => L((p ? "[PASS] " : "[FAIL] ") + n, p ? "text-emerald-400" : "text-red-400")),
+      bad ? L("[ERROR] " + bad + " test(s) failed. Fix the sketch and run again.", "text-red-400") : L("[SUCCESS] 4/4 tests passed" + (won ? "." : ". Challenge won, +50 XP!"), "text-emerald-400"),
+    ]);
+    if (!bad && !won) { setWon(true); onWin(); }
+  };
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Card c="space-y-4 h-fit">
+        <H I={Cpu} k="text-amber-400">Challenge: thermal fan controller</H>
+        <p className="text-sm text-slate-300"><b className="text-amber-400">Task:</b> Initialize a continuous hardware loop reading from Analog Pin A0. If the temperature exceeds 75°C, throw an interrupt to activate the cooling fan on Digital Pin 13.</p>
+        <ul className="text-sm text-slate-300 space-y-1.5 list-disc pl-5">
+          <li>Configure pin 13 as OUTPUT in <code className="text-violet-300">setup()</code>.</li>
+          <li>Sample A0 continuously in <code className="text-violet-300">loop()</code>.</li>
+          <li>Convert to °C (TMP36: <code className="text-violet-300">(volts - 0.5) * 100</code>).</li>
+          <li>Above 75°C drive pin 13 HIGH, otherwise LOW.</li>
+        </ul>
+        <p className="text-xs text-slate-400">Run Tests checks these four behaviours. Compile Code builds the sketch.</p>
+      </Card>
+      <Card>
+        <div className="flex items-center justify-between text-xs text-slate-400 mb-2"><span>sketch.ino</span><span>{lines.length} lines</span></div>
+        <div className="flex bg-slate-900 border border-slate-700 rounded-lg overflow-auto font-mono text-sm leading-6" style={{ maxHeight: 340 }}>
+          <pre className="py-3 pl-3 pr-2 text-right text-slate-500 select-none font-mono text-sm leading-6">{lines.map((_, i) => i + 1).join("\n")}</pre>
+          <textarea value={code} onChange={(e) => setCode(e.target.value)} rows={lines.length} wrap="off" spellCheck={false} aria-label="Code editor" className="flex-1 py-3 pr-3 bg-transparent text-emerald-300 outline-none resize-none whitespace-pre overflow-hidden font-mono text-sm leading-6" style={{ minWidth: "26rem" }} />
+        </div>
+        <div className="flex gap-3 mt-3">
+          <button onClick={run} disabled={busy} className={BTN + "flex-1 bg-emerald-500 text-slate-900 hover:bg-emerald-400"}><Play className="w-4 h-4" />Run Tests</button>
+          <button onClick={compile} disabled={busy} className={BTN + "flex-1 bg-violet-500 text-white hover:bg-violet-400"}>{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Cpu className="w-4 h-4" />}Compile Code</button>
+        </div>
+        {busy && <div className="h-2 mt-3 bg-slate-700 rounded-full overflow-hidden"><div className="h-full bg-violet-500" style={{ width: pct + "%" }} /></div>}
+        <div className="mt-3 h-40 overflow-auto bg-slate-900 border border-slate-700 rounded-lg p-3 font-mono text-xs space-y-0.5">
+          {log.length ? log.map((x, i) => <div key={i} className={x.c}>{x.t}</div>) : <span className="text-slate-500">$ waiting for build...</span>}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ====================== MODULE 5: TRIVIA & MATCHING ====================== */
+const QS = [
+  { q: "A channel has 3 kHz bandwidth and 30 dB SNR. What is its Shannon capacity?", o: ["About 9.9 kbps", "About 29.9 kbps", "About 90 kbps", "About 3 Mbps"], a: 1, e: "Capacity is C = B log2(1 + SNR). 30 dB is a power ratio of 1000, so C = 3000 x log2(1001), roughly 3000 x 9.97 = 29.9 kbps. No coding scheme can signal error-free above this limit; only more bandwidth or signal power raises it." },
+  { q: "An inverting op-amp has Rin = 10 kΩ and Rf = 47 kΩ. What is its voltage gain?", o: ["+4.7", "-4.7", "+5.7", "-5.7"], a: 1, e: "The inverting input sits at virtual ground, so Iin = Vin/Rin flows entirely through Rf and Vout = -(Rf/Rin) x Vin = -4.7 Vin. A non-inverting stage would give 1 + Rf/Rin = 5.7 with no phase flip." },
+  { q: "A standard 8N1 UART frame carries one data byte. How many bits go on the wire?", o: ["8", "9", "10", "11"], a: 2, e: "The line idles high. A frame is 1 start bit (low), 8 data bits (LSB first) and 1 stop bit (high): 10 bit times per byte. At 9600 baud that is 9600 / 10 = 960 bytes per second of real throughput." },
+];
+
+function Quiz({ active, onXp }) {
+  const [i, setI] = useState(0), [pick, setPick] = useState(null), [t, setT] = useState(30), [sc, setSc] = useState(0), [fin, setFin] = useState(false);
+  const Q = QS[i], locked = pick !== null || t <= 0;
+  useEffect(() => {
+    if (!active || locked || fin) return;
+    const id = setTimeout(() => setT((x) => x - 1), 1000);
+    return () => clearTimeout(id);
+  }, [t, active, locked, fin]);
+  const choose = (k) => { if (locked) return; setPick(k); if (k === Q.a) { setSc((s) => s + 1); onXp(50); } };
+  const next = () => { if (i + 1 === QS.length) setFin(true); else { setI(i + 1); setPick(null); setT(30); } };
+  const reset = () => { setI(0); setPick(null); setT(30); setSc(0); setFin(false); };
+  const cls = (k) => locked
+    ? "cursor-default " + (k === Q.a ? "bg-emerald-900 border-emerald-500 text-emerald-200" : k === pick ? "bg-red-900 border-red-500 text-red-200" : "bg-slate-800 border-slate-700 text-slate-500")
+    : "bg-slate-800 border-slate-700 hover:border-cyan-500 cursor-pointer active:scale-95";
+  if (fin) return (
+    <Card c="text-center space-y-3">
+      <Award className="w-12 h-12 mx-auto text-amber-400" />
+      <p className="text-xl font-bold">Quiz complete: {sc}/{QS.length} correct</p>
+      <p className="text-sm text-slate-400">{sc * 50} XP earned this run.</p>
+      <button onClick={reset} className={BTN + "mx-auto bg-cyan-500 text-slate-900 hover:bg-cyan-400"}>Play again</button>
+    </Card>
+  );
+  const tt = Math.max(t, 0);
+  return (
+    <Card bd={pick === null ? "border-slate-700" : pick === Q.a ? "border-emerald-500" : "border-red-500"}>
+      <div className="flex items-center justify-between text-sm mb-2">
+        <span className="flex items-center gap-1 text-slate-400"><Timer className="w-4 h-4" />Question {i + 1}/{QS.length}</span>
+        <span className={"font-mono " + (tt <= 5 ? "text-red-400" : "text-cyan-400")}>{tt}s</span>
+      </div>
+      <div className="h-2 bg-slate-700 rounded-full overflow-hidden mb-4"><div className={"h-full ease-linear transition-all duration-1000 " + (tt > 10 ? "bg-cyan-500" : tt > 5 ? "bg-amber-500" : "bg-red-500")} style={{ width: (tt / 30) * 100 + "%" }} /></div>
+      <p className="font-semibold mb-3">{Q.q}</p>
+      <div role="radiogroup" className="space-y-2">
+        {Q.o.map((o, k) => <button key={k} role="radio" aria-checked={pick === k} onClick={() => choose(k)} className={"w-full text-left border rounded-lg px-4 py-3 text-sm transition-all " + cls(k)}>{o}</button>)}
+      </div>
+      {locked && (
+        <div className="mt-4 p-3 rounded-lg bg-slate-900 border border-slate-700 text-sm text-slate-300">
+          <p className={"font-bold mb-1 " + (pick === Q.a ? "text-emerald-400" : "text-red-400")}>{pick === null ? "Time is up." : pick === Q.a ? "Correct! +50 XP" : "Not quite."}</p>
+          {Q.e}
+          <button onClick={next} className={BTN + "mt-3 bg-violet-500 text-white hover:bg-violet-400"}>{i + 1 === QS.length ? "Finish quiz" : "Next question"}</button>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+const SYM = [
+  { id: "r", n: "Resistor", d: "M5 30H20L25 18L35 42L45 18L55 42L60 30H75" },
+  { id: "z", n: "Zener Diode", d: "M5 30H28M52 30H75M28 15V45L52 30ZM47 11L52 15V45L57 49" },
+  { id: "q", n: "NPN Transistor", c: 1, d: "M4 30H30M30 15V45M30 23L56 8M30 37L56 52M56 52l-9 0M56 52l-4.5 -7.8" },
+  { id: "c", n: "Electrolytic Capacitor", d: "M5 30H33M47 30H75M33 14V46M47 14Q39 30 47 46M20 16h8M24 12v8" },
+];
+const NAMES = ["NPN Transistor", "Resistor", "Electrolytic Capacitor", "Zener Diode"];
+const HINT = "Pick a symbol, then pick its name.";
+
+function Match({ onXp }) {
+  const [sel, setSel] = useState(null), [done, setDone] = useState({}), [bounce, setBounce] = useState(null), [wrong, setWrong] = useState(null), [msg, setMsg] = useState(HINT);
+  const n = Object.keys(done).length;
+  const pickName = (name) => {
+    if (!sel) return setMsg("Select a schematic symbol first.");
+    const s = SYM.find((x) => x.id === sel);
+    if (s.n === name) {
+      setDone((d) => ({ ...d, [s.id]: 1 })); setBounce(s.id); setTimeout(() => setBounce(null), 900); setSel(null);
+      setMsg("Matched: " + name + ". +25 XP"); onXp(25);
+    } else {
+      setWrong(name); setTimeout(() => setWrong(null), 600); setMsg("That symbol is not the " + name + ". Try another name.");
+    }
+  };
+  return (
+    <Card>
+      <H I={Cpu} k="text-violet-400">Component identification</H>
+      <div className="grid grid-cols-2 gap-3">
+        {SYM.map((s, k) => (
+          <button key={s.id} disabled={!!done[s.id]} onClick={() => setSel(s.id)} className={"rounded-xl border-2 p-3 transition-all active:scale-95 cursor-pointer " + (done[s.id] ? "bg-emerald-900 border-emerald-500 text-emerald-300 " : sel === s.id ? "bg-slate-900 border-cyan-400 text-cyan-300 " : "bg-slate-900 border-slate-700 text-slate-200 hover:border-cyan-500 ") + (bounce === s.id ? "animate-bounce" : "")}>
+            <svg viewBox="0 0 80 60" className="w-full h-20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              {s.c && <circle cx="42" cy="30" r="24" />}<path d={s.d} />
+            </svg>
+            <span className="text-xs text-slate-400">{done[s.id] ? s.n : "Symbol " + (k + 1)}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 mt-4">
+        {NAMES.map((nm) => {
+          const used = done[SYM.find((s) => s.n === nm).id];
+          return <button key={nm} disabled={!!used} onClick={() => pickName(nm)} className={"px-3 py-1.5 rounded-full border text-sm transition-all active:scale-95 cursor-pointer " + (used ? "bg-emerald-900 border-emerald-500 text-emerald-300" : wrong === nm ? "bg-red-900 border-red-500 text-red-200" : "bg-slate-900 border-slate-600 hover:border-violet-400")}>{nm}</button>;
+        })}
+      </div>
+      <p className={"text-sm mt-3 " + (n === 4 ? "text-emerald-400" : "text-slate-400")}>{n === 4 ? "All 4 components matched. Matrix complete!" : msg}</p>
+      {n === 4 && <button onClick={() => { setDone({}); setMsg(HINT); }} className={BTN + "mt-3 bg-violet-500 text-white hover:bg-violet-400"}>Play again</button>}
+    </Card>
+  );
+}
+
+const Trivia = ({ active, onXp }) => <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start"><Quiz active={active} onXp={onXp} /><Match onXp={onXp} /></div>;
+
+/* ====================== MODULE 6: COMPONENT LIBRARY ====================== */
+// Entry: [name, level (1 Basic, 2 Intermediate, 3 Advanced, 4 Industrial), what it is, typical use]
+const CATS = {
+  Passive: [
+    ["Resistor", 1, "Limits current, V = I·R. 1–5% tolerance, E12/E24 values.", "LED limiting, pull-ups"],
+    ["Potentiometer", 1, "Variable resistor / divider, 10 kΩ typical.", "Volume, analog input"],
+    ["Capacitor", 1, "Stores charge, I = C·dV/dt. Electrolytic is polarised.", "Decoupling, filters, timing"],
+    ["Inductor", 2, "Stores magnetic energy, V = L·dI/dt. Watch saturation current.", "Buck/boost, EMI filters"],
+    ["Crystal oscillator", 2, "Quartz resonator, 8–16 MHz at ±20 ppm with 22 pF caps.", "MCU clock, UART timing"],
+    ["Transformer", 2, "Magnetic AC coupling; turns ratio sets voltage and isolates the secondary.", "230 V to 12 V supplies"],
+    ["Fuse / PTC", 1, "A fuse opens on overcurrent; a PTC resets after cooling.", "Short-circuit protection"],
+  ],
+  Semiconductors: [
+    ["Diode (1N4007)", 1, "One-way conduction, about 0.7 V drop, 1 A / 1000 V.", "Rectifiers, reverse protection"],
+    ["LED", 1, "Light at 1.8–3.3 V and 5–20 mA. Needs a series resistor.", "Indicators, optical links"],
+    ["Zener diode", 1, "Conducts in reverse at a fixed voltage (3.3, 5.1, 12 V).", "Voltage reference, clamp"],
+    ["Schottky diode", 2, "0.2–0.4 V drop and very fast switching.", "SMPS rectifiers"],
+    ["BJT (BC547 / 2N2222)", 1, "Current-controlled switch, Ic = β·Ib.", "Relay drivers, amplifiers"],
+    ["MOSFET (IRLZ44N)", 2, "Voltage-controlled switch, milliohm Rds(on), 5 V logic-level gate.", "Motor/LED drivers, PWM"],
+    ["Optocoupler (PC817)", 2, "LED plus phototransistor, about 5 kV isolation.", "Isolating MCU from mains"],
+    ["SCR / TRIAC", 3, "Latches on a gate pulse, off at zero current; TRIAC conducts both AC half-cycles.", "Dimmers, AC motor control"],
+    ["IGBT", 3, "MOSFET drive with BJT current: 600–1700 V, tens to hundreds of amps.", "Inverters, VFDs, welders"],
+  ],
+  ICs: [
+    ["555 timer", 1, "Astable f = 1.44/((R1+2R2)C); monostable T = 1.1RC.", "Blinkers, PWM"],
+    ["74HC logic ICs", 1, "CMOS gates and flip-flops, 2–6 V, high noise immunity.", "Glue logic, counters"],
+    ["Regulator (LM7805)", 1, "Linear 5 V, 1 A. Heat = (Vin − Vout) × I.", "Powering MCUs"],
+    ["Op-amp (LM358 / TL072)", 2, "Inverting gain −Rf/Rin; non-inverting 1 + Rf/Rin.", "Amplifiers, filters"],
+    ["Shift register (74HC595)", 2, "Three pins drive 8 latched outputs, daisy-chainable.", "LED matrices, I/O expansion"],
+    ["ADC (ADS1115)", 2, "16-bit delta-sigma ADC on I2C, 4 inputs, programmable gain.", "Precise sensor reads"],
+    ["Buck converter (LM2596)", 2, "Switching step-down, 3 A at about 85% efficiency.", "12 V to 5 V supplies"],
+    ["Instrumentation amp (INA128)", 3, "One resistor sets gain 1–10000; high CMRR.", "Bridge and ECG signals"],
+    ["FPGA (Artix-7 / iCE40)", 3, "Reconfigurable logic in Verilog/VHDL, truly parallel.", "Video, DSP, fast I/O"],
+    ["DSP (TMS320 / C2000)", 3, "MAC-optimised CPU for real-time filters and FFT.", "Motor control, power conversion"],
+  ],
+  Microcontrollers: [
+    ["8051 (AT89C51)", 1, "8-bit CISC: 4 KB ROM, 128 B RAM, 32 I/O, UART. A syllabus classic.", "Learning MCU architecture"],
+    ["ATmega328P (Arduino Uno)", 1, "8-bit AVR, 16 MHz, 32 KB flash, 10-bit ADC, I2C/SPI.", "Prototyping, education"],
+    ["PIC16F877A", 2, "8-bit RISC, 14 KB flash, 8 ADC channels, PWM, USART.", "Legacy industrial boards"],
+    ["STM32F103 (Blue Pill)", 2, "Cortex-M3 at 72 MHz, 128 KB flash, CAN, USB, DMA.", "Step up from AVR"],
+    ["ESP32", 2, "Dual-core 240 MHz, 520 KB SRAM, Wi-Fi + BLE.", "IoT nodes, web dashboards"],
+    ["RP2040 (Pico)", 2, "Dual Cortex-M0+ at 133 MHz, 8 PIO state machines.", "Custom protocols, MicroPython"],
+    ["STM32H7", 3, "Cortex-M7 to 550 MHz, FPU, DSP, 1–2 MB flash, Ethernet.", "Real-time DSP, drives"],
+    ["Raspberry Pi / Jetson", 3, "Linux SBCs; Jetson adds a CUDA GPU for edge AI.", "Vision, AI inference"],
+    ["PLC (Siemens S7-1200)", 4, "Rugged 24 V DC controller, ladder logic (IEC 61131-3), PROFINET.", "Factory automation"],
+  ],
+  Sensors: [
+    ["LDR", 1, "Resistance falls with light: about 1 MΩ dark, 1 kΩ bright.", "Auto lights"],
+    ["NTC thermistor", 1, "10 kΩ at 25°C, falling with temperature (Beta 3950).", "Cheap temperature sensing"],
+    ["LM35 temperature sensor", 1, "10 mV per °C, 0–150°C, no calibration.", "Room, heatsink temperature"],
+    ["DHT22", 1, "Digital temperature/humidity, ±0.5°C, ±2% RH, single wire.", "Weather stations"],
+    ["HC-SR04 ultrasonic", 1, "2–400 cm; distance = echo time × 0.0343 / 2 cm.", "Obstacle avoidance, tank level"],
+    ["PIR (HC-SR501)", 1, "Detects infrared changes from moving warm bodies.", "Motion lights, alarms"],
+    ["MQ-2 gas sensor", 2, "Heated SnO2 element; needs warm-up and calibration.", "Smoke and gas alerts"],
+    ["BME280", 2, "Pressure, humidity, temperature on I2C/SPI, ±1 hPa.", "Weather, altimetry"],
+    ["MPU6050 IMU", 2, "3-axis accelerometer + 3-axis gyro on I2C.", "Balancing robots, tilt"],
+    ["ACS712 current sensor", 2, "Hall-effect, 185 mV/A around 2.5 V (±5 A), isolated.", "Current/power monitoring"],
+    ["Load cell + HX711", 2, "Strain-gauge bridge (about 2 mV/V) with a 24-bit ADC.", "Weighing scales"],
+    ["K-type thermocouple", 3, "About 41 µV/°C, −200 to 1350°C; needs cold-junction compensation.", "Furnaces, exhausts"],
+    ["PT100 RTD", 3, "100 Ω at 0°C, 0.385 Ω/°C; 3/4-wire cancels lead error.", "Accurate process temperature"],
+    ["mmWave radar (LD2410 / IWR)", 3, "FMCW 24–77 GHz: presence, range and velocity in the dark.", "Occupancy, vital signs"],
+    ["LiDAR (TF-Luna / RPLIDAR)", 3, "Pulsed laser, cm accuracy; 2D scanners map 360°.", "SLAM robots, AGVs"],
+    ["Inductive proximity sensor", 4, "M12, 10–30 V DC, PNP/NPN, senses metal at 2–8 mm.", "Machine position, counting"],
+    ["4-20 mA transmitter", 4, "4 mA = 0%, 20 mA = 100%; immune to long cables and noise.", "Pressure, level, flow to PLCs"],
+    ["Electromagnetic flowmeter", 4, "Faraday-law meter for conductive liquids, ±0.5%, 4–20 mA/Modbus.", "Water and chemical lines"],
+    ["Vibration sensor (ICP / ADXL355)", 4, "Accelerometer on bearings; spectrum peaks show imbalance and wear.", "Predictive maintenance"],
+    ["Safety light curtain", 4, "Beam array that stops machines when broken; SIL/PL rated.", "Press, robot guarding"],
+  ],
+  Actuators: [
+    ["DC motor", 1, "Speed follows PWM voltage; needs a flyback diode.", "Wheels, fans, pumps"],
+    ["Relay module", 1, "Isolates 5 V logic from 230 V loads, 10 A contacts.", "Mains switching"],
+    ["Servo (SG90)", 1, "A 1–2 ms pulse every 20 ms sets 0–180°.", "Robot arms, flaps"],
+    ["Stepper (NEMA17 + A4988)", 2, "1.8° steps (200/rev) with microstepping to 1/16.", "3D printers, CNC"],
+    ["BLDC motor + FOC", 3, "Three-phase brushless; field-oriented control gives smooth torque.", "Drones, EVs"],
+    ["VFD / servo drive", 4, "Varies frequency and voltage to control AC motor speed and torque.", "Pumps, conveyors, CNC"],
+    ["Contactor", 4, "Heavy-duty relay for motor loads, 24 V DC or 230 V AC coil.", "Motor starters, panels"],
+  ],
+  Communication: [
+    ["HC-05 Bluetooth", 1, "Serial Bluetooth (SPP), 9600 baud default.", "Wireless serial, robots"],
+    ["RFID RC522", 1, "13.56 MHz SPI reader for MIFARE tags.", "Access control, attendance"],
+    ["nRF24L01", 2, "2.4 GHz, 250 kbps–2 Mbps, about 100 m line of sight.", "Remote controls"],
+    ["LoRa (SX1278)", 2, "Sub-GHz, 2–15 km at 0.3–50 kbps; LoRaWAN capable.", "Farms, remote telemetry"],
+    ["CAN bus (MCP2551)", 3, "Differential multi-master bus to 1 Mbps with CRC.", "Vehicles, motor networks"],
+    ["RS-485 / Modbus RTU", 4, "Differential bus (MAX485), 1200 m, 32+ nodes.", "Meters, drives, PLC links"],
+    ["Industrial Ethernet (PROFINET)", 4, "Deterministic real-time Ethernet, cycles under 1 ms.", "Factory networks, SCADA"],
+  ],
+  Power: [
+    ["Li-ion 18650 + BMS", 2, "3.7 V, 2–3.5 Ah; the BMS guards over-charge, over-discharge and shorts.", "Portable devices"],
+    ["MPPT charge controller", 3, "Tracks the panel's maximum power point, 15–30% over PWM.", "Solar systems"],
+    ["SMPS (24 V DIN rail)", 4, "85–264 V AC in, 24 V DC out, 90%+ efficient, overload-protected.", "Powering PLC panels"],
+  ],
+};
+const LV = ["All levels", "Basic", "Intermediate", "Advanced", "Industrial"];
+const LVC = ["", "bg-emerald-900 text-emerald-300 border-emerald-500", "bg-cyan-900 text-cyan-300 border-cyan-500", "bg-violet-900 text-violet-300 border-violet-500", "bg-amber-900 text-amber-300 border-amber-500"];
+const LIB = Object.entries(CATS).flatMap(([c, a]) => a.map(([n, l, d, u]) => ({ n, c, l, d, u })));
+
+/* Live sensor simulators: [input label, unit, min, max, output formula, optional step] */
+const SIM = {
+  "NTC thermistor": ["Temperature", "°C", -20, 120, (t) => (10 * Math.exp(3950 * (1 / (t + 273.15) - 1 / 298.15))).toFixed(2) + " kΩ (10 kΩ at 25°C, B = 3950)"],
+  "LM35 temperature sensor": ["Temperature", "°C", 0, 150, (t) => t * 10 + " mV, ADC " + Math.round(((t * 0.01) / 5) * 1023) + "/1023 (5 V ref)"],
+  "PT100 RTD": ["Temperature", "°C", -50, 400, (t) => (100 * (1 + 0.00385 * t)).toFixed(2) + " Ω"],
+  "K-type thermocouple": ["Temperature", "°C", 0, 1000, (t) => (t * 0.041).toFixed(2) + " mV (reference junction at 0°C)"],
+  "HC-SR04 ultrasonic": ["Distance", "cm", 2, 400, (d) => "Echo pulse " + Math.round((d * 2) / 0.0343) + " µs"],
+  "Load cell + HX711": ["Load on a 5 kg cell", "kg", 0, 5, (w) => ((w / 5) * 10).toFixed(2) + " mV at 5 V excitation", 0.1],
+  "ACS712 current sensor": ["Current", "A", -5, 5, (i) => (2.5 + 0.185 * i).toFixed(3) + " V output", 0.1],
+  "4-20 mA transmitter": ["Process value", "% of range", 0, 100, (p) => (4 + 0.16 * p).toFixed(2) + " mA, PLC counts " + Math.round((p / 100) * 27648)],
+};
+
+function ComponentLibrary() {
+  const [q, setQ] = useState(""), [cat, setCat] = useState("All"), [lv, setLv] = useState(0), [sel, setSel] = useState(null), [x, setX] = useState(0);
+  const list = LIB.filter((e) => (cat === "All" || e.c === cat) && (!lv || e.l === lv) && (e.n + " " + e.c + " " + e.d + " " + e.u).toLowerCase().includes(q.toLowerCase()));
+  const open = (e) => { setSel(e); if (SIM[e.n]) setX(SIM[e.n][2]); };
+  const pill = (on) => "px-3 py-1.5 rounded-full border text-xs font-semibold transition-all active:scale-95 cursor-pointer " + (on ? "bg-cyan-500 border-cyan-500 text-slate-900" : "bg-slate-800 border-slate-700 text-slate-300 hover:border-cyan-500");
+  const S = sel && SIM[sel.n];
+  return (
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search components, sensors, MCUs..." className="w-full bg-slate-800 border border-slate-700 focus:border-cyan-500 outline-none rounded-lg pl-9 pr-3 py-2 text-sm" />
+      </div>
+      <div className="flex flex-wrap gap-2">{LV.map((l, i) => <button key={l} onClick={() => setLv(i)} className={pill(lv === i)}>{l}</button>)}</div>
+      <div className="flex flex-wrap gap-2">{["All", ...Object.keys(CATS)].map((c) => <button key={c} onClick={() => setCat(c)} className={pill(cat === c)}>{c}</button>)}</div>
+      <p className="text-xs text-slate-400">{list.length} of {LIB.length} components</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {list.map((e) => (
+          <button key={e.n} onClick={() => open(e)} className="text-left bg-slate-800 border border-slate-700 hover:border-cyan-500 hover:scale-105 rounded-xl p-4 transition-all active:scale-95 cursor-pointer">
+            <span className="flex items-start justify-between gap-2"><span className="font-semibold">{e.n}</span><span className={"text-xs border rounded-full px-2 py-0.5 shrink-0 " + LVC[e.l]}>{LV[e.l]}</span></span>
+            <span className="block text-xs text-cyan-400 mt-0.5">{e.c}</span>
+            <span className="block text-sm text-slate-300 mt-2">{e.d}</span>
+            {SIM[e.n] && <span className="block text-xs text-violet-300 mt-2">Live simulator inside</span>}
+          </button>
+        ))}
+      </div>
+      {!list.length && <Card c="text-center text-sm text-slate-400">No match. Try a different search or clear a filter.</Card>}
+      {sel && (
+        <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(2,6,23,.7)" }} onClick={() => setSel(null)}>
+          <aside onClick={(e) => e.stopPropagation()} className="w-full sm:w-96 h-full bg-slate-800 border-l border-slate-700 p-6 overflow-y-auto">
+            <div className="flex justify-between items-start">
+              <h3 className="text-xl font-bold">{sel.n}</h3>
+              <button onClick={() => setSel(null)} aria-label="Close" className="p-1 text-slate-400 hover:text-white active:scale-95 cursor-pointer"><X className="w-5 h-5" /></button>
+            </div>
+            <p className="flex items-center gap-2 mt-2 text-xs"><span className="text-cyan-400">{sel.c}</span><span className={"border rounded-full px-2 py-0.5 " + LVC[sel.l]}>{LV[sel.l]}</span></p>
+            <h4 className="font-semibold mt-5 mb-1">What it is</h4>
+            <p className="text-sm text-slate-300">{sel.d}</p>
+            <h4 className="font-semibold mt-5 mb-1">Typical use</h4>
+            <p className="text-sm text-slate-300">{sel.u}</p>
+            {S && (
+              <div className="mt-5 p-3 bg-slate-900 border border-slate-700 rounded-lg">
+                <h4 className="flex items-center gap-2 font-semibold mb-3"><Activity className="w-4 h-4 text-violet-400" />Live simulator</h4>
+                <Slider l={S[0] + " (" + S[1] + ")"} v={x} set={setX} min={S[2]} max={S[3]} step={S[5] || 1} />
+                <p className="font-mono text-sm text-cyan-300 mt-3">{S[4](x)}</p>
+              </div>
+            )}
+          </aside>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================== APP ============================== */
+export default function App() {
+  const [tab, setTab] = useState("dash"), [labSub, setLabSub] = useState("gate"), [queries, setQueries] = useState(34), [wins, setWins] = useState(9);
+  const [p, setP] = useState({ l: 4, x: 450, m: 600 });
+  const addXp = (n) => setP(({ l, x, m }) => { x += n; while (x >= m) { x -= m; l++; m += 200; } return { l, x, m }; });
+  const launch = (n) => { setTab(n.tab); if (n.lab) setLabSub(n.lab); };
+  const pane = (k, el) => <div className={tab === k ? "" : "hidden"}>{el}</div>;
+  const nav = (mobile) => TABS.map(([k, l, Ic]) => (
+    <button key={k} onClick={() => setTab(k)} className={"flex items-center gap-2 rounded-lg text-sm font-semibold transition-all active:scale-95 cursor-pointer shrink-0 " + (mobile ? "px-3 py-2 " : "px-3 py-2.5 w-full ") + (tab === k ? "bg-cyan-500 text-slate-900" : "text-slate-300 bg-slate-800 hover:bg-slate-700")}>
+      <Ic className="w-4 h-4" />{l}
+    </button>
+  ));
+  return (
+    <div className="min-h-screen bg-slate-900 text-slate-100 md:flex">
+      <aside className="hidden md:flex flex-col gap-2 w-60 shrink-0 h-screen sticky top-0 p-4 border-r border-slate-700 backdrop-blur-md" style={GLASS}>
+        <div className="flex items-center gap-2 mb-4"><Cpu className="w-6 h-6 text-cyan-400" /><div><p className="font-bold leading-tight">ChakraVeda</p><p className="text-xs text-slate-400">Smart ENTC Learning</p></div></div>
+        {nav(false)}
+      </aside>
+      <div className="flex-1 min-w-0">
+        <header className="sticky top-0 z-40 px-4 py-3 border-b border-slate-700 backdrop-blur-md" style={GLASS}>
+          <p className="flex items-center gap-2 text-sm font-semibold"><Zap className="w-4 h-4 text-violet-400" />Rank: Quantum Innovator | Level {p.l} ({p.x}/{p.m} XP)</p>
+          <div className="h-2 mt-2 bg-slate-700 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: (p.x / p.m) * 100 + "%" }} /></div>
+          <nav className="md:hidden flex gap-2 mt-3 overflow-x-auto pb-1">{nav(true)}</nav>
+        </header>
+        <main className="p-4 md:p-6 max-w-6xl mx-auto">
+          <h1 className="text-2xl md:text-3xl font-bold">ChakraVeda</h1>
+          <p className="text-slate-400 text-sm mb-6">Smart ENTC Learning & Innovation Platform</p>
+          {pane("dash", <Dashboard queries={queries} wins={wins} launch={launch} />)}
+          {pane("lab", <Lab sub={labSub} setSub={setLabSub} active={tab === "lab"} />)}
+          {pane("ai", <Copilot onQuery={() => setQueries((q) => q + 1)} />)}
+          {pane("code", <Playground onWin={() => { setWins((w) => w + 1); addXp(50); }} />)}
+          {pane("trivia", <Trivia active={tab === "trivia"} onXp={addXp} />)}
+          {pane("lib", <ComponentLibrary />)}
+        </main>
+      </div>
+    </div>
+  );
+}
