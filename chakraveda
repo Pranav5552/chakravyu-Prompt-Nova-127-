@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChakraVeda — ENTC Learning Platform</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090909;
+      --panel: #111112;
+      --panel-2: #171718;
+      --border: #303033;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --red: #dc2626;
+      --red-light: #f87171;
+      --green: #34d399;
+      --amber: #fbbf24;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:active { transform: scale(.98); }
+    a { color: inherit; }
+    .hidden { display: none !important; }
+
+    .login-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: radial-gradient(ellipse at 20% 10%, #351010 0, transparent 45%), var(--bg);
+    }
+    .login-card {
+      width: min(960px, 100%);
+      min-height: 560px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: #0e0e0f;
+    }
+    .login-hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 42px;
+      background: linear-gradient(145deg, #3b1010, #160a0a 58%, #090909);
+    }
+    .login-form { display: flex; flex-direction: column; justify-content: center; padding: 42px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 20px; font-weight: 900; }
+    .brand-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border-radius: 12px;
+      background: var(--red);
+      font-size: 22px;
+    }
+    .brand span:last-child span { color: var(--red-light); }
+    h1, h2, h3, p { margin-top: 0; }
+    .login-hero h1 { max-width: 440px; font-size: clamp(36px, 5vw, 56px); line-height: 1.07; }
+    .login-hero p { max-width: 430px; color: #c4c4c8; line-height: 1.7; }
+    .eyebrow { color: var(--red-light); font-size: 12px; font-weight: 800; letter-spacing: .18em; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    label { display: block; margin: 14px 0 7px; color: #d4d4d8; font-size: 13px; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: #080808;
+      color: var(--text);
+      outline: none;
+    }
+    input, select { padding: 12px 14px; }
+    textarea { padding: 14px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--red); }
+    .button {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 11px 15px;
+      background: var(--panel-2);
+      color: var(--text);
+      transition: .18s ease;
+    }
+    .button:hover { border-color: var(--red); transform: translateY(-1px); }
+    .button-red { border-color: var(--red); background: var(--red); font-weight: 700; }
+    .button-red:hover { background: #ef4444; }
+    .button-green { border-color: #065f46; background: #052e24; color: #a7f3d0; }
+    .button-small { padding: 8px 11px; font-size: 13px; }
+    .error { min-height: 20px; margin-top: 8px; color: #f87171; font-size: 13px; }
+
+    .topbar {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      display: flex;
+      min-height: 66px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 22px;
+      border-bottom: 1px solid var(--border);
+      background: rgb(0 0 0 / 88%);
+      backdrop-filter: blur(14px);
+    }
+    .rank { width: min(390px, 38vw); }
+    .rank-line { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; }
+    .rank-line strong { color: #fecaca; }
+    .progress { height: 6px; margin-top: 7px; overflow: hidden; border-radius: 99px; background: #29292b; }
+    .progress > div { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #991b1b, #f87171); transition: width .3s; }
+    .shell { display: flex; max-width: 1600px; min-height: calc(100vh - 66px); margin: auto; }
+    .sidebar {
+      position: sticky;
+      top: 66px;
+      width: 235px;
+      height: calc(100vh - 66px);
+      flex: 0 0 235px;
+      padding: 20px 14px;
+      border-right: 1px solid var(--border);
+      background: #0b0b0b;
+    }
+    .side-label { margin: 5px 10px 12px; color: #71717a; font-size: 11px; letter-spacing: .16em; }
+    .nav-button {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0;
+      border: 0;
+      border-radius: 11px;
+      padding: 12px;
+      background: transparent;
+      color: #a1a1aa;
+      text-align: left;
+      transition: .18s;
+    }
+    .nav-button:hover { background: #191919; color: white; }
+    .nav-button.active { background: #3b1111; color: #fecaca; }
+    main { min-width: 0; flex: 1; padding: 28px clamp(16px, 3vw, 40px); }
+    .content { max-width: 1240px; margin: auto; }
+    .page { animation: open .22s ease-out; }
+    @keyframes open { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .page-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .page-heading h1 { margin: 5px 0; font-size: clamp(27px, 4vw, 36px); }
+    .page-heading p { margin: 6px 0 0; color: var(--muted); }
+    .grid { display: grid; gap: 16px; }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 19px;
+      background: rgb(18 18 19 / 90%);
+    }
+    .metric { transition: .2s ease; }
+    .metric:hover { transform: translateY(-4px); border-color: #7f1d1d; }
+    .metric-label { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 13px; }
+    .metric-value { margin: 15px 0 0; font-size: 32px; font-weight: 800; }
+    .roadmap-node {
+      width: 100%;
+      border: 1px solid #303033;
+      border-radius: 13px;
+      padding: 15px;
+      background: #090909;
+      color: var(--text);
+      text-align: left;
+      transition: .18s;
+    }
+    .roadmap-node:hover { border-color: #991b1b; transform: translateY(-2px); }
+    .node-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 12px; color: #71717a; font-size: 11px; }
+    .status-good { color: var(--green); }
+    .status-active { color: var(--amber); }
+    .status-locked { color: #71717a; }
+    .drawer-backdrop { position: fixed; z-index: 40; inset: 0; display: flex; justify-content: flex-end; background: #000b; }
+    .drawer { width: min(430px, 100%); height: 100%; padding: 28px; border-left: 1px solid var(--border); background: #101011; box-shadow: -20px 0 60px #0009; }
+    .two-col { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 18px; }
+    .component-list { max-height: 480px; overflow: auto; }
+    .component-item { display: block; width: 100%; border: 0; border-radius: 8px; padding: 9px 10px; background: transparent; color: #a1a1aa; text-align: left; font-size: 13px; }
+    .component-item:hover, .component-item.selected { background: #351111; color: #fecaca; }
+    .sim-diagram {
+      display: grid;
+      min-height: 180px;
+      place-items: center;
+      margin: 19px 0;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: radial-gradient(ellipse at center, #291111, #080808 72%);
+    }
+    .diagram-row { display: flex; align-items: center; gap: 0; }
+    .wire { width: clamp(30px, 8vw, 105px); height: 3px; background: #71717a; }
+    .component-block { border: 2px solid var(--red); border-radius: 8px; padding: 15px; background: #171717; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    input[type="range"] { padding: 0; accent-color: var(--red); }
+    .log {
+      min-height: 80px;
+      white-space: pre-wrap;
+      border-radius: 11px;
+      padding: 14px;
+      background: #050505;
+      color: #86efac;
+      font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .chat-box { display: flex; min-height: 480px; flex-direction: column; }
+    .messages { display: flex; flex: 1; flex-direction: column; gap: 12px; overflow: auto; padding: 6px 2px 14px; }
+    .message { max-width: 90%; white-space: pre-wrap; border-radius: 12px; padding: 13px; font-size: 13px; line-height: 1.7; }
+    .message.bot { background: #080808; color: #d4d4d8; }
+    .message.user { align-self: flex-end; background: #451313; color: #fff; }
+    .chat-form { display: flex; gap: 9px; }
+    .chat-form input { min-width: 0; flex: 1; }
+    .quick-pills { display: grid; gap: 9px; margin-top: 15px; }
+    .quick-pills button { text-align: left; line-height: 1.5; }
+    .editor { min-height: 350px; color: #a7f3d0; font: 13px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .quiz-option { width: 100%; margin-top: 8px; text-align: left; }
+    .quiz-option.correct { border-color: #059669; background: #052e24; color: #a7f3d0; }
+    .quiz-option.wrong { border-color: #dc2626; background: #3b1111; color: #fecaca; }
+    .symbol-grid, .name-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .symbol {
+      display: grid;
+      min-height: 84px;
+      place-items: center;
+      font-size: 25px;
+    }
+    .symbol.chosen { border-color: var(--red); background: #351111; }
+    .symbol.matched, .name.matched { border-color: #047857; background: #052e24; color: #a7f3d0; }
+    footer { margin-top: 38px; border-top: 1px solid #222; padding: 18px 0; color: #71717a; text-align: center; font-size: 12px; }
+
+    @media (max-width: 980px) {
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .two-col { grid-template-columns: 1fr; }
+      .component-list { max-height: 260px; }
+    }
+    @media (max-width: 700px) {
+      .login-card { grid-template-columns: 1fr; }
+      .login-hero { min-height: 270px; padding: 28px; }
+      .login-form { padding: 28px; }
+      .topbar { padding: 10px 13px; }
+      .rank { display: none; }
+      .shell { display: block; }
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        padding: 8px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .side-label { display: none; }
+      .nav-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+      .nav-button { justify-content: center; padding: 10px 4px; font-size: 11px; }
+      main { padding: 20px 14px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    const catalog = {
+      "Passive Components": "Resistor|Potentiometer|Rheostat|Trimpot|Thermistor|Varistor|Light-Dependent Resistor|Ceramic Capacitor|Multilayer Ceramic Capacitor|Electrolytic Capacitor|Tantalum Capacitor|Film Capacitor|Supercapacitor|Variable Capacitor|Air Core Inductor|Iron Core Inductor|Ferrite Core Inductor|Toroidal Inductor|Choke|Step-up Transformer|Step-down Transformer|Isolation Transformer|Autotransformer|Current Transformer|Potential Transformer|Pulse Transformer",
+      "Active Components": "Rectifier Diode|Zener Diode|Schottky Diode|Fast Recovery Diode|Tunnel Diode|PIN Diode|Photodiode|Laser Diode|Light Emitting Diode|Bipolar Junction Transistor|Darlington Pair|Junction Field-Effect Transistor|Metal-Oxide-Semiconductor FET|Gallium Nitride FET|Silicon Carbide MOSFET|Insulated-Gate Bipolar Transistor|Silicon Controlled Rectifier|Triac|Diac|Gate Turn-Off Thyristor|Magnetron|Klystron|Traveling Wave Tube",
+      "Integrated Circuits & Packages": "Operational Amplifier|Comparator|Linear Voltage Regulator|Switching Voltage Regulator|Audio Amplifier|Phase-Locked Loop|Logic Gate|Flip-Flop|Multiplexer|Demultiplexer|Shift Register|Counter|Encoder|Decoder|Analog-to-Digital Converter|Digital-to-Analog Converter|Real-Time Clock|Battery Charger IC|Motor Driver IC|Hot-Swap Controller|RF Transceiver|Bluetooth System-on-Chip|Wi-Fi System-on-Chip|Dual In-line Package|Single In-line Package|TO-92 Transistor Package|TO-220 Transistor Package|Small Outline Integrated Circuit|Small Outline Package|Shrink Small Outline Package|Thin Shrink Small Outline Package|SOT-23 Transistor Package|SOT-223 Transistor Package|Quad Flat Package|Quad Flat No-leads|Ball Grid Array|Land Grid Array",
+      "Processors & Microcontrollers": "Intel Core Processor|AMD Ryzen Processor|ARM Cortex-A Processor|Digital Signal Processor|Graphics Processing Unit|Tensor Processing Unit|Atmel AVR Microcontroller|PIC Microcontroller|8051 Microcontroller|TI MSP430 Microcontroller|STM32 Microcontroller|ESP32 Microcontroller|TI C2000 Microcontroller|NXP i.MX Microcontroller|Field Programmable Gate Array|Complex Programmable Logic Device|Motherboard Northbridge|Motherboard Southbridge|PCIe Switch|Ethernet Controller Chipset",
+      "Sensors": "Type J Thermocouple|Type K Thermocouple|PT100 Resistance Temperature Detector|PT1000 Resistance Temperature Detector|Digital Temperature Sensor|Inductive Proximity Sensor|Capacitive Proximity Sensor|Magnetic Hall-Effect Sensor|Ultrasonic Sensor|Linear Variable Differential Transformer|Photoresistor Sensor|Phototransistor Sensor|Infrared Barrier Sensor|Time-of-Flight Laser Sensor|Ambient Light Sensor|Accelerometer|Gyroscope|Inertial Measurement Unit|Strain Gauge|Load Cell|Piezoelectric Force Sensor|Pressure Transducer|Turbine Flow Meter|Electromagnetic Flow Meter|Coriolis Flow Meter|Liquid Level Float Switch|Radar Level Transmitter|Ultrasonic Level Transmitter|Carbon Dioxide Gas Sensor|Methane Gas Sensor|Oxygen Gas Sensor|pH Sensor|Particulate Matter Air Quality Sensor|Machine Vision Camera|Smart Barcode Scanner|LiDAR Scanner",
+      "Actuators": "Linear Solenoid|Rotary Solenoid|Magnetic Door Lock|Brushed DC Motor|Brushless DC Motor|Coreless DC Motor|Unipolar Stepper Motor|Bipolar Stepper Motor|RC Servo Motor|Industrial AC Servo Motor|Industrial DC Servo Motor|Electro-Pneumatic Cylinder|Electro-Hydraulic Valve|Piezoelectric Actuator|Shape Memory Alloy Wire",
+      "Electromechanical Components": "Toggle Switch|Tactile Push-Button Switch|Slide Switch|Rocker Switch|DIP Switch|Rotary Switch|Limit Switch|Micro Switch|Reed Switch|Electromechanical Relay|Solid-State Relay|Reed Relay|Signal Relay|Time-Delay Relay|Piezoelectric Buzzer|Magnetic Buzzer|Speaker|Microphone|Extruded Heatsink|Cooling Fan|Peltier Thermoelectric Cooler",
+      "Wires & Cables": "Hook-up Wire|Magnet Wire|Enamelled Copper Wire|Stranded Copper Wire|Ribbon Cable|Twisted Pair Signal Wire|Coaxial Cable|Shielded Twisted Pair Cable|Flexible Shielded Control Cable|Armoured Power Cable|Steel Wire Armoured Cable|Unarmoured PVC Cable|Unarmoured XLPE Cable|Variable Frequency Drive Cable|Profibus Cable|Profinet Cable|Modbus RS485 Cable|DeviceNet Cable|Shielded Cat6A Ethernet Cable|Shielded Cat7 Ethernet Cable|Single-mode Fiber Optic Cable|Multi-mode Fiber Optic Cable",
+      "Connectors & Interconnects": "Pin Header|JST Connector|Molex Plug|Screw Terminal Block|Card Edge Connector|RJ45 Connector|USB Type-A Connector|USB Type-B Connector|USB Type-C Connector|DB9 D-Sub Connector|DB25 D-Sub Connector|HDMI Connector|DisplayPort Connector|SMA RF Connector|BNC RF Connector|TNC RF Connector|N-Type RF Connector|MCX RF Connector|U.FL RF Connector|M8 Circular Connector|M12 Circular Connector|Harting Heavy-Duty Connector|Camlock High-Current Connector|Ring Crimp Terminal|Spade Crimp Terminal|DIN-Rail Mounted Terminal Block|Wago Push-in Wire Connector",
+      "Fuses & Safety": "Glass Tube Fuse|Ceramic Cartridge Fuse|Automotive Blade Fuse|Subminiature Fuse|Resettable PTC Polyfuse|Thermal Circuit Breaker|High Rupturing Capacity Fuse|Semiconductor Ultra-Fast Fuse|Thermal Fuse Cutoff|Bimetallic Thermal Switch|Miniature Circuit Breaker|Molded Case Circuit Breaker|Earth Leakage Circuit Breaker|Residual Current Circuit Breaker|Motor Protection Circuit Breaker|Thermal Overload Relay|Surge Protection Device|Lightning Arrester|Isolation Monitoring Relay|Safety Logic Relay|Emergency Stop Pushbutton|Safety Light Curtain|Magnetic Safety Interlock Switch|Key Trapped Interlock System|Safety Laser Scanner",
+      "Machines & Instruments": "Variable Frequency Drive|AC Soft Starter|Digital Servo Drive|Stepper Driver|Programmable Logic Controller|Distributed Control System|Remote Terminal Unit|Human-Machine Interface|AC-DC Linear Power Supply|Switch-Mode Power Supply|Uninterruptible Power Supply|High-Voltage DC Converter|Three-phase AC Induction Motor|Synchronous Motor|Alternator|Power Distribution Switchgear|Busbar System|Digital Multimeter|Digital Storage Oscilloscope|Function Generator|Programmable DC Laboratory Power Supply|Spectrum Analyzer|LCR Meter|Logic Analyzer|Insulation Resistance Tester|Thermal Imaging Camera|Power Quality Analyzer|Earth Ground Resistance Tester"
+    };
+
+    const components = Object.entries(catalog).flatMap(([category, names]) =>
+      names.split("|").map(name => ({ name, category }))
+    );
+
+    const questions = [
+      {
+        question: "For a band-limited signal with a maximum frequency of 4 kHz, what ideal sampling rate avoids aliasing?",
+        options: ["2 kHz", "4 kHz", "More than 8 kHz", "Exactly 4 kHz"],
+        answer: 2,
+        explanation: "The Nyquist–Shannon theorem requires a sampling frequency greater than twice the signal's highest frequency. Real systems also need an anti-aliasing filter and practical margin."
+      },
+      {
+        question: "Which op-amp configuration produces a 180° phase inversion?",
+        options: ["Voltage follower", "Inverting amplifier", "Non-inverting amplifier", "Comparator with no feedback"],
+        answer: 1,
+        explanation: "An inverting amplifier has ideal gain −Rf/Rin. The negative sign indicates a 180° phase reversal between input and output."
+      },
+      {
+        question: "A typical UART frame commonly contains which structure?",
+        options: ["Start bit, data bits, optional parity, stop bit(s)", "Clock, address, data, acknowledgement only", "Only a continuous clock and data pair", "Preamble, payload, CRC, Manchester code"],
+        answer: 0,
+        explanation: "UART is asynchronous. A frame usually contains a start bit, data bits, optional parity, and one or more stop bits. Both devices need matching baud rate and frame settings."
+      }
+    ];
+
+    let user = localStorage.getItem("cv-user") || "";
+    let page = "Dashboard";
+    let xp = Number(localStorage.getItem("cv-xp")) || 450;
+    let selectedComponent = components[0];
+    let selectedCategory = "All components";
+    let selectedModule = null;
+    let logicA = false, logicB = true, gate = "AND";
+    let frequency = 4, noise = 8, voltage = 5, resistance = 1000;
+    let messages = [{ role: "bot", text: "Hello! Ask an ENTC question or choose a quick prompt. I can help explain concepts and suggest debugging steps." }];
+    let chatLoading = false;
+    let code = `const int sensorPin = A0;
+const int fanPin = 13;
+const float thresholdC = 75.0;
+
+void setup() {
+  pinMode(fanPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int raw = analogRead(sensorPin);
+  float voltage = raw * (5.0 / 1023.0);
+  float temperatureC = (voltage - 0.5) * 100.0;
+
+  if (temperatureC > thresholdC) {
+    digitalWrite(fanPin, HIGH);
+  } else {
+    digitalWrite(fanPin, LOW);
+  }
+  delay(250);
+}`;
+    let terminal = "Ready. Edit the sketch, then compile or run the local checks.";
+    let compiling = false;
+    let quizIndex = 0, quizAnswer = null, quizTime = 30;
+    let timerId = null;
+    let selectedSymbol = null;
+    let matchedSymbols = [];
+    const symbols = ["Resistor", "Zener diode", "NPN transistor", "Electrolytic capacitor"];
+    const shuffledNames = ["Electrolytic capacitor", "Resistor", "NPN transistor", "Zener diode"];
+
+    // Auth state
+    let authMode = "login";
+    let authNotice = "";
+    let showChangePassword = false;
+
+    function esc(text) {
+      return String(text).replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    function getAccounts() {
+      try {
+        return JSON.parse(localStorage.getItem("cv-accounts") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveAccounts(accounts) {
+      localStorage.setItem("cv-accounts", JSON.stringify(accounts));
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      authNotice = "";
+      render();
+    }
+
+    function authSubmit(event) {
+      event.preventDefault();
+      const email = document.getElementById("auth-email")?.value.trim().toLowerCase();
+      const password = document.getElementById("auth-password")?.value;
+      const confirmPassword = document.getElementById("auth-confirm")?.value;
+      const accounts = getAccounts();
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        authNotice = "Enter a valid email address.";
+        render();
+        return;
+      }
+
+      if (authMode === "create") {
+        if (password.length < 8) {
+          authNotice = "Use a password with at least 8 characters.";
+          render();
+          return;
+        }
+        if (password !== confirmPassword) {
+          authNotice = "The passwords do not match.";
+          render();
+          return;
+        }
+        if (accounts[email]) {
+          authNotice = "An account already exists for this email. Please sign in.";
+          render();
+          return;
+        }
+        accounts[email] = { password };
+        saveAccounts(accounts);
+        user = email;
+        localStorage.setItem("cv-user", user);
+        authMode = "login";
+        authNotice = "";
+        render();
+        return;
+      }
+
+      if (authMode === "forgot") {
+        if (!accounts[email]) {
+          authNotice = "No account was found for that email address.";
+          render();
+          return;
+        }
+        if (password.length < 8) {
+          authNotice = "Your new password must have at least 8 characters.";
+          render();
+          return;
+        }
+        if (password !== confirmPassword) {
+          authNotice = "The new passwords do not match.";
+          render();
+          return;
+        }
+        accounts[email].password = password;
+        saveAccounts(accounts);
+        authMode = "login";
+        authNotice = "Password updated. You can now sign in.";
+        render();
+        return;
+      }
+
+      // login
+      if (!accounts[email] || accounts[email].password !== password) {
+        authNotice = "Email or password is incorrect. Create an account if you are new.";
+        render();
+        return;
+      }
+      user = email;
+      localStorage.setItem("cv-user", user);
+      authNotice = "";
+      render();
+    }
+
+    function openChangePassword() {
+      showChangePassword = true;
+      render();
+    }
+
+    function closeChangePassword() {
+      showChangePassword = false;
+      render();
+    }
+
+    function submitChangePassword(event) {
+      event.preventDefault();
+      const currentPassword = document.getElementById("current-password").value;
+      const newPassword = document.getElementById("new-password").value;
+      const confirmPassword = document.getElementById("confirm-new-password").value;
+      const accounts = getAccounts();
+      const account = accounts[user.toLowerCase()];
+      const error = document.getElementById("change-password-error");
+
+      if (!account || account.password !== currentPassword) {
+        error.textContent = "Your current password is incorrect.";
+        return;
+      }
+      if (newPassword.length < 8) {
+        error.textContent = "Your new password must have at least 8 characters.";
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        error.textContent = "The new passwords do not match.";
+        return;
+      }
+      account.password = newPassword;
+      saveAccounts(accounts);
+      showChangePassword = false;
+      authNotice = "";
+      render();
+      alert("Your password has been changed.");
+    }
+
+    function changePasswordModal() {
+      if (!showChangePassword) return "";
+      return `
+        <div class="drawer-backdrop" onclick="if(event.target===this) closeChangePassword()">
+          <section class="drawer" style="height:auto;max-height:100vh;overflow:auto;margin:auto;border:1px solid #303033;border-radius:18px;align-self:center">
+            <button class="button button-small" style="float:right" onclick="closeChangePassword()">✕</button>
+            <div class="eyebrow" style="margin-top:35px">ACCOUNT SETTINGS</div>
+            <h2>Change password</h2>
+            <form onsubmit="submitChangePassword(event)">
+              <label for="current-password">Current password</label>
+              <input id="current-password" type="password" required>
+              <label for="new-password">New password</label>
+              <input id="new-password" type="password" minlength="8" required>
+              <label for="confirm-new-password">Confirm new password</label>
+              <input id="confirm-new-password" type="password" minlength="8" required>
+              <div id="change-password-error" class="error" role="alert"></div>
+              <button class="button button-red" style="width:100%;margin-top:8px">Update password</button>
+            </form>
+          </section>
+        </div>`;
+    }
+
+    function awardXP(value) {
+      xp = Math.min(600, xp + value);
+      localStorage.setItem("cv-xp", xp);
+      updateRank();
+    }
+
+    function updateRank() {
+      const label = document.getElementById("xp-label");
+      const bar = document.getElementById("xp-bar");
+      if (label) label.textContent = `${xp}/600 XP`;
+      if (bar) bar.style.width = `${Math.min(xp / 6, 100)}%`;
+    }
+
+    function logout() {
+      localStorage.removeItem("cv-user");
+      user = "";
+      showChangePassword = false;
+      authMode = "login";
+      authNotice = "";
+      render();
+    }
+
+    function navigate(name) {
+      page = name;
+      selectedModule = null;
+      if (timerId) clearInterval(timerId);
+      render();
+    }
+
+    function pageHeading(eyebrow, title, description, action = "") {
+      return `<div class="page-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${description}</p></div>${action}</div>`;
+    }
+
+    function renderDashboard() {
+      const modules = [
+        ["Digital Logic Systems", "Verified", "status-good", "Logic gates, Boolean algebra, combinational circuits, and flip-flops."],
+        ["IoT & Sensors", "Active", "status-active", "Sensor interfacing, ESP32 connectivity, protocols, and data acquisition."],
+        ["Signal Processing & DSP", "Locked", "status-locked", "Sampling, transforms, filtering, and digital signal analysis."],
+        ["AI at the Edge", "Locked", "status-locked", "Embedded inference, model optimization, and edge deployment."]
+      ];
+      return `<section class="page">
+        ${pageHeading("ENGINEERING OVERVIEW", "Welcome to your lab", "Your progress, tools, and next learning steps in one place.", `<button class="button button-red" onclick="navigate('Simulation')">⚡ Open virtual lab</button>`)}
+        <div class="grid grid-4">
+          ${[["Labs Completed", "14/20", "◉"], ["Avg Quiz Accuracy", "88%", "↗"], ["Debug Challenges Won", "9", "✦"], ["AI Assistant Queries", "34", "⌁"]].map(x => `<article class="card metric"><div class="metric-label"><span>${x[0]}</span><span style="color:#f87171">${x[2]}</span></div><div class="metric-value">${x[1]}</div>${x[0] === "Labs Completed" ? `<div class="progress"><div style="width:70%"></div></div>` : ""}</article>`).join("")}
+        </div>
+        <article class="card" style="margin-top:16px">
+          <div class="metric-label"><strong style="color:#fecaca">Rank: Quantum Innovator · Level 4</strong><span id="xp-label">${xp}/600 XP</span></div>
+          <div class="progress"><div id="xp-bar" style="width:${Math.min(xp / 6, 100)}%"></div></div>
+        </article>
+        <article class="card" style="margin-top:16px">
+          <h2>Curriculum roadmap</h2>
+          <div class="grid grid-4">${modules.map((m, i) => `<button class="roadmap-node" onclick="openModule(${i})"><div class="node-top"><span>NODE 0${i + 1}</span><span class="${m[2]}">${m[1]}</span></div><strong>${m[0]}</strong><p class="muted small" style="line-height:1.6;margin:9px 0 0">${m[3]}</p></button>`).join("")}</div>
+        </article>
+      </section>`;
+    }
+
+    function openModule(index) {
+      const m = [
+        ["Digital Logic Systems", "Verified", "Logic gates, Boolean algebra, combinational circuits, and flip-flops."],
+        ["IoT & Sensors", "Active", "Sensor interfacing, ESP32 connectivity, protocols, and data acquisition."],
+        ["Signal Processing & DSP", "Locked", "Sampling, transforms, filtering, and digital signal analysis."],
+        ["AI at the Edge", "Locked", "Embedded inference, model optimization, and edge deployment."]
+      ][index];
+      selectedModule = m;
+      render();
+    }
+
+    function moduleDrawer() {
+      if (!selectedModule) return "";
+      return `<div class="drawer-backdrop" onclick="closeDrawer(event)"><aside class="drawer" onclick="event.stopPropagation()"><button class="button button-small" style="float:right" onclick="selectedModule=null;render()">✕</button><div class="eyebrow" style="margin-top:50px">CURRICULUM MODULE</div><h2 style="margin-top:8px">${selectedModule[0]}</h2><p class="muted" style="line-height:1.8">${selectedModule[2]}</p><div class="card"><strong>Real-world relevance</strong><p class="muted small" style="line-height:1.7;margin:8px 0 0">Apply these engineering principles to embedded systems, instrumentation, industrial automation, and product design.</p></div><button class="button button-red" style="width:100%;margin-top:16px" onclick="selectedModule=null;navigate('Tutorials')">Explore learning resources</button></aside></div>`;
+    }
+
+    function closeDrawer(event) {
+      if (event.target.classList.contains("drawer-backdrop")) {
+        selectedModule = null;
+        render();
+      }
+    }
+
+    function renderSimulation() {
+      const categories = ["All components", ...Object.keys(catalog)];
+      const filtered = components.filter(c =>
+        (selectedCategory === "All components" || c.category === selectedCategory) &&
+        c.name.toLowerCase().includes((document.getElementById("component-search")?.value || "").toLowerCase())
+      );
+      const output = gate === "AND" ? logicA && logicB :
+        gate === "OR" ? logicA || logicB :
+        gate === "XOR" ? logicA !== logicB :
+        gate === "NAND" ? !(logicA && logicB) : !logicA;
+      const current = (voltage / resistance * 1000).toFixed(2);
+      const wave = Array.from({ length: 41 }, (_, i) =>
+        `L${i * 10.5} ${50 - Math.sin(i * frequency * .18) * 30 + Math.sin(i * 8.3) * noise * .12}`
+      ).join(" ");
+
+      return `<section class="page">
+        ${pageHeading("INTERACTIVE VIRTUAL LAB", "Simulation workspace", "Choose a component, adjust parameters, and explore an educational live model.")}
+        <div class="two-col">
+          <article class="card">
+            <h3>Component library <span class="muted small">(${components.length})</span></h3>
+            <input id="component-search" placeholder="Search components..." oninput="refreshComponentList()" style="margin-bottom:10px">
+            <select id="category-select" onchange="selectedCategory=this.value;render()">${categories.map(c => `<option ${c === selectedCategory ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
+            <div class="component-list" id="component-list" style="margin-top:10px">
+              ${filtered.map(c => `<button class="component-item ${c.name === selectedComponent.name ? "selected" : ""}" onclick="chooseComponent('${esc(c.name)}')">${esc(c.name)}</button>`).join("") || `<p class="muted small">No matching components.</p>`}
+            </div>
+          </article>
+
+          <div>
+            <article class="card">
+              <div class="eyebrow">${esc(selectedComponent.category)}</div>
+              <h2 style="margin:6px 0">${esc(selectedComponent.name)}</h2>
+              <div class="sim-diagram"><div class="diagram-row"><span class="small muted">INPUT</span><div class="wire"></div><div class="component-block">${esc(selectedComponent.name)}</div><div class="wire"></div><span class="small muted">OUTPUT</span></div></div>
+              <div class="controls">
+                <label>Supply voltage: <strong id="voltage-label">${voltage} V</strong><input type="range" min="1" max="24" value="${voltage}" oninput="voltage=+this.value;document.getElementById('voltage-label').textContent=this.value+' V';updateOhms()"></label>
+                <label>Resistance: <strong id="resistance-label">${resistance} Ω</strong><input type="range" min="100" max="10000" step="100" value="${resistance}" oninput="resistance=+this.value;document.getElementById('resistance-label').textContent=this.value+' Ω';updateOhms()"></label>
+              </div>
+              <p id="ohms-result" class="card small" style="margin:10px 0 0">Ohm's law estimate: <strong style="color:#fca5a5">${current} mA</strong>. Educational estimate only; check datasheets before building.</p>
+            </article>
+
+            <div class="grid grid-2" style="margin-top:16px">
+              <article class="card">
+                <h3>Digital logic gate</h3>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+                  <button class="button button-small" onclick="logicA=!logicA;render()">Input A: ${Number(logicA)}</button>
+                  <button class="button button-small" onclick="logicB=!logicB;render()">Input B: ${Number(logicB)}</button>
+                  <select style="width:auto" onchange="gate=this.value;render()">${["AND","OR","XOR","NAND","NOT"].map(g => `<option ${gate===g?"selected":""}>${g}</option>`).join("")}</select>
+                  <span class="button ${output ? "button-green" : ""}">Output Q: ${Number(output)}</span>
+                </div>
+                <p class="small muted" style="margin:16px 0 0">Truth table (A, B, Q):</p>
+                <div class="small" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:9px;color:#a1a1aa">
+                  <strong>A</strong><strong>B</strong><strong>Gate</strong><strong>Q</strong>
+                  ${[[0,0],[0,1],[1,0],[1,1]].map(([a,b]) => {
+                    const q = gate==="AND" ? !!(a&&b) : gate==="OR" ? !!(a||b) : gate==="XOR" ? a!==b : gate==="NAND" ? !(a&&b) : !a;
+                    return `<span style="${Number(logicA)===a && Number(logicB)===b ? "color:#34d399;font-weight:bold" : ""}">${a}</span><span>${b}</span><span>${gate}</span><span>${Number(q)}</span>`;
+                  }).join("")}
+                </div>
+              </article>
+
+              <article class="card">
+                <h3>Sensor waveform</h3>
+                <label>Sampling frequency: <strong id="freq-label">${frequency} Hz</strong><input type="range" min="1" max="10" value="${frequency}" oninput="frequency=+this.value;document.getElementById('freq-label').textContent=this.value+' Hz';updateWave()"></label>
+                <label>Signal noise: <strong id="noise-label">${noise}%</strong><input type="range" min="0" max="100" value="${noise}" oninput="noise=+this.value;document.getElementById('noise-label').textContent=this.value+'%';updateWave()"></label>
+                <svg id="wave-svg" viewBox="0 0 420 100" style="width:100%;height:100px;border-radius:9px;background:#050505"><path d="M0 50 ${wave}" fill="none" stroke="#f87171" stroke-width="2"/></svg>
+                <p class="small muted" style="margin:8px 0 0">Conceptual signal visualization; noise is a visual approximation.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>`;
+    }
+
+    function chooseComponent(name) {
+      selectedComponent = components.find(c => c.name === name) || components[0];
+      render();
+    }
+
+    function refreshComponentList() {
+      const search = document.getElementById("component-search");
+      const list = document.getElementById("component-list");
+      if (!search || !list) return;
+      const value = search.value.toLowerCase();
+      const filtered = components.filter(c =>
+        (selectedCategory === "All components" || c.category === selectedCategory) &&
+        c.name.toLowerCase().includes(value)
+      );
+      list.innerHTML = filtered.map(c => `<button class="component-item ${c.name === selectedComponent.name ? "selected" : ""}" onclick="chooseComponent('${esc(c.name)}')">${esc(c.name)}</button>`).join("") || `<p class="muted small">No matching components.</p>`;
+    }
+
+    function updateOhms() {
+      const result = document.getElementById("ohms-result");
+      if (result) result.innerHTML = `Ohm's law estimate: <strong style="color:#fca5a5">${(voltage / resistance * 1000).toFixed(2)} mA</strong>. Educational estimate only; check datasheets before building.`;
+    }
+
+    function updateWave() {
+      const path = document.querySelector("#wave-svg path");
+      if (!path) return;
+      const points = Array.from({length: 41}, (_, i) =>
+        `L${i * 10.5} ${50 - Math.sin(i * frequency * .18) * 30 + Math.sin(i * 8.3) * noise * .12}`
+      ).join(" ");
+      path.setAttribute("d", `M0 50 ${points}`);
+    }
+
+    function renderTutorials() {
+      const matches = components.filter(c => c.name.toLowerCase().includes((document.getElementById("tutorial-search")?.value || "").toLowerCase())).slice(0, 100);
+      const item = selectedComponent;
+      const youtube = "https://www.youtube.com/results?search_query=" + encodeURIComponent(item.name + " electronics tutorial");
+      const reference = "https://www.google.com/search?q=" + encodeURIComponent(item.name + " circuit diagram working principle");
+      return `<section class="page">
+        ${pageHeading("COMPONENT KNOWLEDGE BASE", "Tutorials & reference", "Select a component for an overview and external learning resources.")}
+        <div class="two-col">
+          <article class="card">
+            <input id="tutorial-search" placeholder="Find a component..." oninput="refreshTutorialList()">
+            <div id="tutorial-list" class="component-list" style="margin-top:10px">
+              ${matches.map(c=>`<button class="component-item ${c.name===item.name?"selected":""}" onclick="chooseTutorial('${esc(c.name)}')">${esc(c.name)}</button>`).join("")}
+            </div>
+          </article>
+          <article class="card">
+            <div class="eyebrow">${esc(item.category)}</div>
+            <h2 style="margin:7px 0">${esc(item.name)}</h2>
+            <p class="muted" style="line-height:1.8"><strong style="color:#f4f4f5">How it works:</strong> Study the device's electrical behavior, terminals, operating range, and role in the circuit. Confirm polarity, ratings, tolerances, and thermal limits against the manufacturer's datasheet.</p>
+            <div class="grid grid-2">
+              <div class="card"><strong>Connections & circuit diagram</strong><p class="small muted" style="line-height:1.7;margin:8px 0 0">Identify terminals and reference designators, then verify the circuit topology and supply conditions against a schematic or datasheet.</p></div>
+              <div class="card"><strong>Uses</strong><p class="small muted" style="line-height:1.7;margin:8px 0 0">Used in applications across ${esc(item.category.toLowerCase())}, instrumentation, embedded systems, or industrial electronics depending on the exact device.</p></div>
+              <div class="card"><strong>Advantages</strong><p class="small muted" style="line-height:1.7;margin:8px 0 0">A suitable component can simplify a design and improve reliability when correctly specified and used within its ratings.</p></div>
+              <div class="card"><strong>Limitations & safety</strong><p class="small muted" style="line-height:1.7;margin:8px 0 0">Consider losses, tolerances, response time, operating temperature, isolation, and failure modes. Never exceed absolute maximum ratings.</p></div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px">
+              <a class="button button-red" target="_blank" rel="noreferrer" href="${youtube}">Find video tutorials ↗</a>
+              <a class="button" target="_blank" rel="noreferrer" href="${reference}">Find circuit diagrams ↗</a>
+            </div>
+            <p class="small muted" style="margin:12px 0 0">External search links are used because exact component details vary by part number and manufacturer.</p>
+          </article>
+        </div>
+      </section>`;
+    }
+
+    function chooseTutorial(name) {
+      selectedComponent = components.find(c => c.name === name) || components[0];
+      render();
+    }
+
+    function refreshTutorialList() {
+      const search = document.getElementById("tutorial-search");
+      const list = document.getElementById("tutorial-list");
+      if (!search || !list) return;
+      const matches = components.filter(c => c.name.toLowerCase().includes(search.value.toLowerCase())).slice(0, 100);
+      list.innerHTML = matches.map(c=>`<button class="component-item ${c.name===selectedComponent.name?"selected":""}" onclick="chooseTutorial('${esc(c.name)}')">${esc(c.name)}</button>`).join("") || `<p class="muted small">No matching components.</p>`;
+    }
+
+    function renderCopilot() {
+      const presets = [
+        "Fix Arduino error: 'Serial' was not declared in this scope",
+        "Explain the Nyquist sampling theorem clearly",
+        "How do I interface an I2C OLED with ESP32?"
+      ];
+      return `<section class="page">
+        ${pageHeading("ENGINEERING ASSISTANT", "ENTC Copilot", "A local demo assistant for common electronics questions.")}
+        <div class="two-col" style="grid-template-columns:280px minmax(0,1fr)">
+          <article class="card"><h3>Quick query pills</h3><div class="quick-pills">${presets.map(p=>`<button class="button button-small" onclick="sendMessage('${esc(p)}')">${esc(p)}</button>`).join("")}</div><div class="card small muted" style="margin-top:16px;line-height:1.6">✦ Responses are generated locally from built-in example scenarios.</div></article>
+          <article class="card chat-box">
+            <div style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px"><strong>ChakraVeda assistant</strong><div class="small" style="color:#34d399;margin-top:4px">${chatLoading ? "Compiling explanation…" : "Ready"}</div></div>
+            <div id="messages" class="messages">${messages.map(m=>`<div class="message ${m.role}">${esc(m.text)}</div>`).join("")}${chatLoading?`<div class="message bot">ENTC-Bot compiling explanation...</div>`:""}</div>
+            <form class="chat-form" onsubmit="submitChat(event)"><input id="chat-input" placeholder="Ask an engineering question..."><button class="button button-red" aria-label="Send">Send</button></form>
+          </article>
+        </div>
+      </section>`;
+    }
+
+    function submitChat(event) {
+      event.preventDefault();
+      const input = document.getElementById("chat-input");
+      sendMessage(input.value);
+    }
+
+    function sendMessage(text) {
+      text = String(text || "").trim();
+      if (!text || chatLoading) return;
+      messages.push({ role: "user", text });
+      chatLoading = true;
+      render();
+      setTimeout(() => {
+        const lower = text.toLowerCase();
+        let response;
+        if (lower.includes("serial")) {
+          response = `Check the selected board and its installed core, then initialize Serial inside setup(). Serial is case-sensitive.\n\nMinimal test sketch:\n\nvoid setup() { Serial.begin(9600); }\nvoid loop() { Serial.println("Hello"); delay(1000); }\n\nIf it still fails, check the full error output and board selection.`;
+        } else if (lower.includes("nyquist")) {
+          response = `The Nyquist–Shannon theorem states that a band-limited signal with highest frequency fmax can be reconstructed when the sampling frequency fs is greater than 2 × fmax. Sampling too slowly causes aliasing: higher-frequency content appears as lower-frequency content. Use an anti-aliasing low-pass filter and practical sampling margin.`;
+        } else {
+          response = `For an ESP32 I²C OLED, connect VCC to the module's supported supply, GND to common ground, and SDA/SCL to the chosen I²C pins. Initialize the I²C bus with those pins, use a display library compatible with the controller, and scan the bus to confirm the address (often 0x3C). Verify voltage, pull-ups, pin mapping, and the module datasheet before powering it.`;
+        }
+        messages.push({ role: "bot", text: response });
+        chatLoading = false;
+        render();
+      }, 1200);
+    }
+
+    function renderCodeLab() {
+      return `<section class="page">
+        ${pageHeading("EMBEDDED DEVELOPMENT", "Code workspace", "Edit an Arduino-style sketch and run local challenge checks.")}
+        <div class="grid grid-2">
+          <article class="card"><div class="eyebrow">CHALLENGE 04 · CONTROL SYSTEMS</div><h2>Temperature-triggered cooling fan</h2><p class="muted" style="line-height:1.8">Initialize a continuous hardware loop reading from analog pin A0. If the temperature exceeds 75°C, activate a cooling fan connected to digital pin 13.</p><div class="card small muted" style="line-height:2"><strong style="color:white">Challenge checklist</strong><br>• Configure the fan pin as an output.<br>• Read the analog sensor and convert its reading to temperature.<br>• Compare against the 75°C threshold.<br>• Turn the fan on above threshold and off otherwise.</div></article>
+          <article class="card"><div style="display:flex;justify-content:space-between"><strong>Arduino sketch</strong><span class="small muted">C++ · local editor</span></div><textarea class="editor" spellcheck="false" oninput="code=this.value" style="margin-top:12px">${esc(code)}</textarea><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"><button class="button" onclick="runCode(false)" ${compiling?"disabled":""}>▶ Run tests</button><button class="button button-red" onclick="runCode(true)" ${compiling?"disabled":""}>${compiling?"Compiling…":"Compile code"}</button><button class="button" onclick="resetCode()">Reset</button></div></article>
+        </div>
+        <article class="card" style="margin-top:16px"><h3>Build terminal</h3><pre class="log">${esc(terminal)}</pre></article>
+      </section>`;
+    }
+
+    function runCode(compile) {
+      if (compiling) return;
+      compiling = true;
+      terminal = compile ? "Initializing compiler..." : "Running local challenge checks...";
+      render();
+      setTimeout(() => {
+        if (!code.trim()) {
+          terminal = "[ERROR] Compilation failed: empty sketch.\\n[ERROR] No setup() or loop() function found.\\n[FAILURE] Build aborted.";
+        } else if (compile) {
+          terminal = "[INFO] Initializing Compiler...\\n[SUCCESS] Sketch compiled cleanly. 14,240 bytes written to partition.";
+        } else {
+          terminal = [
+            `[${code.includes("analogRead") ? "PASS" : "FAIL"}] Analog sensor read`,
+            `[${code.includes("temperatureC > 75") || code.includes("temperatureC > thresholdC") ? "PASS" : "FAIL"}] 75°C threshold condition`,
+            `[${code.includes("digitalWrite") && code.includes("fanPin") ? "PASS" : "FAIL"}] Cooling fan output control`,
+            `[${code.includes("pinMode") ? "PASS" : "FAIL"}] Pin initialization`
+          ].join("\\n");
+        }
+        compiling = false;
+        render();
+      }, compile ? 1500 : 900);
+    }
+
+    function resetCode() {
+      code = `const int sensorPin = A0;
+const int fanPin = 13;
+const float thresholdC = 75.0;
+
+void setup() {
+  pinMode(fanPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int raw = analogRead(sensorPin);
+  float voltage = raw * (5.0 / 1023.0);
+  float temperatureC = (voltage - 0.5) * 100.0;
+
+  if (temperatureC > thresholdC) {
+    digitalWrite(fanPin, HIGH);
+  } else {
+    digitalWrite(fanPin, LOW);
+  }
+  delay(250);
+}`;
+      terminal = "Starter sketch restored.";
+      render();
+    }
+
+    function startQuizTimer() {
+      if (timerId) clearInterval(timerId);
+      timerId = setInterval(() => {
+        if (page !== "Trivia" || quizAnswer !== null || quizTime <= 0) {
+          clearInterval(timerId);
+          return;
+        }
+        quizTime--;
+        const label = document.getElementById("quiz-time");
+        const bar = document.getElementById("quiz-bar");
+        if (label) label.textContent = `${quizTime}s`;
+        if (bar) bar.style.width = `${quizTime / 30 * 100}%`;
+        if (quizTime === 0) render();
+      }, 1000);
+    }
+
+    function renderTrivia() {
+      const q = questions[quizIndex];
+      const options = q.options.map((option, i) => {
+        let cls = "button quiz-option";
+        if (quizAnswer !== null && i === q.answer) cls += " correct";
+        if (quizAnswer === i && i !== q.answer) cls += " wrong";
+        return `<button class="${cls}" onclick="answerQuiz(${i})" ${quizAnswer !== null || quizTime === 0 ? "disabled" : ""}>${esc(option)}</button>`;
+      }).join("");
+      const matched = matchedSymbols;
+      const symbolChars = ["⌁", "─|◁", "⟋◯", "─| |─"];
+      const symbolButtons = symbols.map((s, i) => `<button class="button symbol ${selectedSymbol===i?"chosen":""} ${matched.includes(s)?"matched":""}" onclick="pickSymbol(${i})">${symbolChars[i]}</button>`).join("");
+      const nameButtons = shuffledNames.map(n => `<button class="button name ${matched.includes(n)?"matched":""}" onclick="pairSymbol('${esc(n)}')" ${matched.includes(n)?"disabled":""}>${matched.includes(n)?"✓ ":""}${n}</button>`).join("");
+      return `<section class="page">
+        ${pageHeading("MICRO-LEARNING", "Chip trivia & component ID", "Answer technical questions and match common schematic symbols.")}
+        <div class="grid grid-2">
+          <article class="card">
+            <div style="display:flex;justify-content:space-between"><h2>Quick quiz</h2><span id="quiz-time" style="color:#fbbf24">${quizTime}s</span></div>
+            <div class="progress"><div id="quiz-bar" style="width:${quizTime/30*100}%"></div></div>
+            <h3 style="margin-top:20px;line-height:1.5">${q.question}</h3>
+            ${options}
+            ${quizAnswer!==null ? `<div class="card small muted" style="line-height:1.7;margin-top:12px"><strong>${quizAnswer===q.answer?"Correct.":"Review:"}</strong> ${q.explanation}</div>` : ""}
+            ${quizTime===0 && quizAnswer===null ? `<p style="color:#fbbf24">Time is up. Move on to the next question.</p>` : ""}
+            <button class="button button-red button-small" style="margin-top:14px" onclick="nextQuestion()">Next question</button>
+          </article>
+          <article class="card">
+            <h2>Component identification matrix</h2><p class="small muted">Select a schematic symbol, then its matching name.</p>
+            <div class="symbol-grid" style="margin-top:14px">${symbolButtons}</div>
+            <div class="name-grid" style="margin-top:12px">${nameButtons}</div>
+            <p id="pair-notice" class="small muted" style="margin:14px 0 0">${selectedSymbol===null?"":"Selected symbol. Choose its name."}</p>
+          </article>
+        </div>
+      </section>`;
+    }
+
+    function answerQuiz(index) {
+      if (quizAnswer !== null || quizTime === 0) return;
+      quizAnswer = index;
+      if (index === questions[quizIndex].answer) awardXP(25);
+      render();
+    }
+
+    function nextQuestion() {
+      quizIndex = (quizIndex + 1) % questions.length;
+      quizAnswer = null;
+      quizTime = 30;
+      render();
+    }
+
+    function pickSymbol(index) {
+      selectedSymbol = index;
+      render();
+    }
+
+    function pairSymbol(name) {
+      if (selectedSymbol === null) {
+        alert("Choose a schematic symbol first.");
+        return;
+      }
+      if (symbols[selectedSymbol] === name) {
+        if (!matchedSymbols.includes(name)) {
+          matchedSymbols.push(name);
+          awardXP(10);
+        }
+      } else {
+        alert("Not quite—check the symbol terminals and try again.");
+      }
+      selectedSymbol = null;
+      render();
+    }
+
+    function render() {
+      const root = document.getElementById("root");
+
+      if (!user) {
+        const isCreate = authMode === "create";
+        const isForgot = authMode === "forgot";
+        const title = isCreate
+          ? "Create your account"
+          : isForgot
+            ? "Reset your password"
+            : "Sign in to ChakraVeda";
+        const description = isForgot
+          ? "Enter your account email and choose a new password."
+          : isCreate
+            ? "Create an account to save your learning progress in this browser."
+            : "Sign in with your account email and password.";
+
+        root.innerHTML = `
+          <div class="login-page">
+            <div class="login-card">
+              <section class="login-hero">
+                <div class="brand">
+                  <div class="brand-mark">ϟ</div>
+                  <div>Chakra<span style="color:#f87171">Veda</span></div>
+                </div>
+                <div>
+                  <div class="eyebrow">LEARN · BUILD · INNOVATE</div>
+                  <h1>Your electronics lab, reimagined.</h1>
+                  <p>Explore components, test circuits, write embedded code, and grow your engineering skills.</p>
+                </div>
+                <span class="small muted">ChakraVeda · ENTC learning platform</span>
+              </section>
+              <form class="login-form" onsubmit="authSubmit(event)">
+                <div class="eyebrow">${isCreate ? "GET STARTED" : isForgot ? "ACCOUNT RECOVERY" : "WELCOME BACK"}</div>
+                <h2 style="font-size:30px;margin:8px 0">${title}</h2>
+                <p class="muted small" style="line-height:1.6">${description}</p>
+                <label for="auth-email">Gmail / email</label>
+                <input id="auth-email" type="email" placeholder="engineer@gmail.com" required>
+                <label for="auth-password">${isForgot ? "New password" : "Password"}</label>
+                <input id="auth-password" type="password" placeholder="At least 8 characters" minlength="8" required>
+                ${authMode !== "login" ? `
+                  <label for="auth-confirm">Confirm password</label>
+                  <input id="auth-confirm" type="password" placeholder="Enter the password again" minlength="8" required>
+                ` : ""}
+                <div class="error" role="alert">${esc(authNotice)}</div>
+                <button class="button button-red" style="margin-top:8px;width:100%">
+                  ${isCreate ? "Create account" : isForgot ? "Reset password" : "Sign in"}
+                </button>
+                <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:17px">
+                  ${authMode !== "login" ? `
+                    <button type="button" class="button button-small" onclick="setAuthMode('login')">Back to sign in</button>
+                  ` : `
+                    <button type="button" class="button button-small" onclick="setAuthMode('create')">Create account</button>
+                    <button type="button" class="button button-small" onclick="setAuthMode('forgot')">Forgot password?</button>
+                  `}
+                </div>
+                <p class="small muted" style="text-align:center;margin-top:14px">
+                  Demo accounts are stored in this browser only.
+                </p>
+              </form>
+            </div>
+          </div>`;
+        return;
+      }
+
+      const nav = [
+        ["Dashboard","▦"],["Simulation","⌘"],["Tutorials","▤"],
+        ["AI Copilot","✧"],["Code Lab","‹›"],["Trivia","★"]
+      ];
+      let content = page === "Dashboard" ? renderDashboard()
+        : page === "Simulation" ? renderSimulation()
+        : page === "Tutorials" ? renderTutorials()
+        : page === "AI Copilot" ? renderCopilot()
+        : page === "Code Lab" ? renderCodeLab()
+        : renderTrivia();
+
+      root.innerHTML = `<header class="topbar">
+        <div class="brand"><div class="brand-mark">ϟ</div><div>Chakra<span style="color:#f87171">Veda</span></div></div>
+        <div class="rank"><div class="rank-line"><strong>Rank: Quantum Innovator · Level 4</strong><span id="xp-label">${xp}/600 XP</span></div><div class="progress"><div id="xp-bar" style="width:${Math.min(xp/6,100)}%"></div></div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="small muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${esc(user)}</span>
+          <button class="button button-small" onclick="openChangePassword()">Change password</button>
+          <button class="button button-small" onclick="logout()">Sign out</button>
+        </div>
+      </header>
+      <div class="shell">
+        <aside class="sidebar"><div class="side-label">WORKSPACE</div><nav class="nav-list">${nav.map(([name, icon]) => `<button class="nav-button ${page===name?"active":""}" onclick="navigate('${name}')"><span>${icon}</span>${name}</button>`).join("")}
+        <div class="card small muted" style="margin-top:25px;line-height:1.6"><strong style="color:#f87171">Build with care</strong><br>Use datasheets and safe lab practices when moving from simulation to hardware.</div></nav></aside>
+        <main><div class="content">${content}<footer>ChakraVeda · Smart ENTC Learning & Innovation Platform</footer></div></main>
+      </div>
+      ${moduleDrawer()}
+      ${changePasswordModal()}`;
+
+      if (page === "Trivia") startQuizTimer();
+    }
+
+    render();
+  </script>
+</body>
+</html>
