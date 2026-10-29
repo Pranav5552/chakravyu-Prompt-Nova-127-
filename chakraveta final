@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CircuitVerse ENTC</title>
+<style>
+:root{--r:#ff1f3d;--b:#2c2c2c}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:#eee;font:15px system-ui,sans-serif;background:radial-gradient(circle at 50% -10%,#450510,#0a0a0a 60%) fixed}
+.hide{display:none!important}
+button,input,textarea{font:inherit}
+button{background:#1d1d1d;color:#eee;border:1px solid var(--b);border-radius:8px;padding:7px 12px;cursor:pointer;transition:.2s}
+button:hover,button.on{background:var(--r);border-color:var(--r);box-shadow:0 0 12px #ff1f3d88}
+input,textarea{width:100%;background:#0d0d0d;color:#eee;border:1px solid var(--b);border-radius:8px;padding:9px;margin:5px 0}
+.card{background:rgba(20,20,20,.85);border:1px solid var(--b);border-radius:14px;padding:16px;margin:10px 0;transition:.2s}
+.card:hover{border-color:var(--r)}
+#intro,#auth{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9;background:#0a0a0a;transition:opacity .6s}
+#auth{z-index:8;background:transparent}
+#intro.f{opacity:0}
+#intro svg{width:min(80vw,400px)}
+#tr{fill:none;stroke:var(--r);stroke-width:3;stroke-dasharray:1;stroke-dashoffset:1;animation:dr 2s forwards;filter:drop-shadow(0 0 6px var(--r))}
+@keyframes dr{to{stroke-dashoffset:0}}
+h1 b,.r{color:var(--r)}
+nav{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px 14px;background:#000a;border-bottom:1px solid var(--r);position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+nav .lg{font-weight:700;margin-right:auto}
+main{max-width:1100px;margin:auto;padding:14px}
+#simw{display:grid;grid-template-columns:130px 1fr 210px;gap:10px}
+@media(max-width:800px){#simw{grid-template-columns:1fr}#pal button{display:inline-block!important;width:auto!important}}
+#pal button{display:block;width:100%;margin:4px 0}
+#cv{width:100%;aspect-ratio:16/10;background:#0b0b0b;border:1px solid var(--b);border-radius:12px;touch-action:none}
+.cp{fill:#1a1a1a;stroke:#777;stroke-width:2}.cp.sel{stroke:var(--r)}
+.pin{fill:#ddd;cursor:crosshair}.pin.p{fill:var(--r)}
+.wire{stroke:var(--r);stroke-width:4;stroke-linecap:round;opacity:.85}
+text{fill:#ccc;font-size:11px;text-anchor:middle;pointer-events:none}
+#code{height:170px;font-family:monospace;font-size:13px}
+#ser{background:#000;border:1px solid var(--b);border-radius:8px;padding:8px;height:70px;overflow:auto;margin:5px 0;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.bub{padding:8px 12px;border-radius:12px;margin:6px 0;max-width:85%}.u{background:var(--r);margin-left:auto}.a{background:#1f1f1f}
+#chat{height:300px;overflow:auto}
+.bar{height:10px;background:#222;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--r)}
+details summary{cursor:pointer;font-weight:600}
+a{color:#ff7a8a}
+</style></head><body>
+
+<div id="intro">
+ <svg viewBox="0 0 400 60"><path id="tr" pathLength="1" d="M0 30H80L95 8L115 52L135 8L155 52L170 30H400"/></svg>
+ <h1>Circuit<b>Verse</b> ENTC</h1><p>Design • Code • Simulate</p>
+ <button onclick="endIntro()">Skip</button>
+</div>
+
+<div id="auth" class="hide"><div class="card" style="width:min(92vw,380px)">
+ <h1 style="margin:0">Circuit<b>Verse</b></h1><p>Sign in to start building.</p>
+ <div style="display:flex;gap:6px"><button id="tin" class="on" onclick="setMode('in')">Login</button><button id="tup" onclick="setMode('up')">Create Account</button></div>
+ <input id="nm" class="up" placeholder="Full name" style="display:none">
+ <input id="em" type="email" placeholder="Email (e.g. name@gmail.com)">
+ <input id="pw" type="password" placeholder="Password (min 6 characters)">
+ <input id="pw2" class="up" type="password" placeholder="Confirm password" style="display:none">
+ <p id="msg" class="r"></p>
+ <button id="sub" onclick="doIt()" style="width:100%">Login</button>
+ <p style="text-align:center"><a href="#" onclick="login('guest','Guest');return false">Continue as guest</a></p>
+</div></div>
+
+<div id="app" class="hide">
+<nav><span class="lg">Circuit<span class="r">Verse</span></span>
+ <button data-p="home" onclick="go2('home')">Home</button><button data-p="sim" onclick="go2('sim')">Simulation</button><button data-p="tut" onclick="go2('tut')">Tutorials</button><button data-p="quiz" onclick="go2('quiz')">Quiz</button><button data-p="ai" onclick="go2('ai')">AI Help</button><button data-p="dash" onclick="go2('dash')">Dashboard</button>
+ <span id="who" class="r"></span><button onclick="logout()">Logout</button></nav>
+<main>
+<section id="home">
+ <div class="card"><h1>Learn electronics by <b>building</b> it.</h1><p>Hi <span id="hi" class="r"></span>! Drag components, wire them, write Arduino-style code and watch your circuit come alive.</p><button onclick="go2('sim')">Open Simulator</button></div>
+ <div class="grid">
+  <div class="card" onclick="go2('sim')">⚡ <b>Simulation</b><br>Wire circuits and run code on a virtual Arduino.</div>
+  <div class="card" onclick="go2('tut')">📘 <b>Tutorials</b><br>Connections, uses, pros/cons and video links.</div>
+  <div class="card" onclick="go2('quiz')">⏱ <b>Timed Quiz</b><br>Test yourself and earn XP.</div>
+  <div class="card" onclick="go2('ai')">🤖 <b>AI Help</b><br>Ask questions or analyze your circuit.</div>
+ </div>
+</section>
+
+<section id="sim" class="hide">
+ <div class="card" style="display:flex;gap:6px;flex-wrap:wrap">
+  <button id="sb" onclick="toggleSim()">▶ Run</button><button onclick="resetSim()">⟲ Reset</button><button onclick="rotSel()">↻ Rotate (R)</button><button onclick="delSel()">🗑 Delete</button><span class="r">Examples:</span><button onclick="loadEx('led')">LED circuit</button><button onclick="loadEx('uno')">Arduino blink</button><button onclick="loadEx('rc')">RC charging</button><button onclick="loadEx('')">Clear</button><b id="tm" class="r"></b>
+ </div>
+ <div id="simw">
+  <div class="card" id="pal"></div>
+  <div><svg id="cv" viewBox="0 0 800 500"></svg>
+   <div class="card"><b>Code</b> (Arduino-style, pin 13)<textarea id="code" spellcheck="false">void setup() {
+  pinMode(13, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  Serial.println("LED ON");
+  delay(500);
+  digitalWrite(13, LOW);
+  Serial.println("LED OFF");
+  delay(500);
+}</textarea>
+   <button onclick="runCode()">Upload &amp; Run</button> <button onclick="stopAll()">Stop</button>
+   <pre id="ser"></pre></div>
+  </div>
+  <div><div class="card" id="inf"></div><div class="card"><b>Scope</b> <small>(<span class="r">V</span> / I)</small><canvas id="sc" width="300" height="100" style="width:100%"></canvas></div></div>
+ </div>
+</section>
+
+<section id="tut" class="hide">
+ <input id="ts" placeholder="Search components (resistor, relay, sensor…)" oninput="rt()">
+ <div id="tlist"></div>
+ <div class="card"><b>Search any other component</b><input id="xs" placeholder="e.g. Schottky diode, Hall-effect sensor"><button onclick="ext()">Find resources</button><p id="xr"></p></div>
+</section>
+
+<section id="quiz" class="hide"><div class="card" id="qb"><h2>ENTC Timed Quiz</h2><p>8 questions · 15 seconds each</p><button onclick="qs()">Start</button></div></section>
+
+<section id="ai" class="hide"><div class="card"><b>AI Learning Assistant</b>
+ <div id="chat"><div class="bub a">Hi! Ask me about a component, Ohm’s law, or press “Analyze my circuit”.</div></div>
+ <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button onclick="ask('Analyze my circuit')">Analyze my circuit</button><button onclick="ask('Ohm law')">Ohm’s law</button><button onclick="ask('Resistor for LED')">Resistor for LED?</button></div>
+ <div style="display:flex;gap:6px"><input id="q" placeholder="Ask something…" onkeydown="if(event.key=='Enter')ask()"><button onclick="ask()">Send</button></div></div></section>
+
+<section id="dash" class="hide"><h2>Dashboard</h2><div id="dsh"></div></section>
+</main></div>
+
+<script>
+const $=s=>document.querySelector(s),LS=(k,v)=>{try{return v===undefined?JSON.parse(localStorage.getItem(k)):localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const hash=async s=>crypto.subtle?[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join(''):btoa(s);
+let U=null,mode='in';
+/* ---------- AUTH ---------- */
+function setMode(m){mode=m;$('#tin').classList.toggle('on',m=='in');$('#tup').classList.toggle('on',m=='up');document.querySelectorAll('.up').forEach(e=>e.style.display=m=='up'?'':'none');$('#sub').textContent=m=='in'?'Login':'Create Account';$('#msg').textContent=''}
+async function doIt(){const e=$('#em').value.trim().toLowerCase(),p=$('#pw').value,us=LS('users')||{},m=$('#msg');
+ if(!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(e))return m.textContent='Enter a valid email (e.g. name@gmail.com)';
+ if(p.length<6)return m.textContent='Password must be at least 6 characters';
+ if(mode=='up'){const n=$('#nm').value.trim();if(!n)return m.textContent='Enter your name';if(us[e])return m.textContent='Account already exists, please log in';if(p!=$('#pw2').value)return m.textContent='Passwords do not match';us[e]={n,h:await hash(p)};LS('users',us)}
+ else if(!us[e]||us[e].h!=await hash(p))return m.textContent='Wrong email or password';
+ login(e,us[e].n)}
+function login(e,n){U={e,n};LS('sess',U);$('#auth').classList.add('hide');$('#app').classList.remove('hide');$('#who').textContent=n;$('#hi').textContent=n;if(!S.c.length)loadEx('led');go2('home')}
+function logout(){localStorage.removeItem('sess');stopAll();U=null;$('#app').classList.add('hide');$('#auth').classList.remove('hide');setMode('in')}
+function endIntro(){const i=$('#intro');if(!i)return;i.classList.add('f');setTimeout(()=>i.remove(),600);const s=LS('sess');s?login(s.e,s.n):$('#auth').classList.remove('hide')}
+setTimeout(endIntro,2600);
+const P=()=>LS('p_'+U.e)||{l:[],q:0,s:0,xp:0},SP=p=>LS('p_'+U.e,p);
+function go2(p){document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hide',s.id!=p));document.querySelectorAll('nav [data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p==p));if(p=='tut')rt();if(p=='dash')rd();if(p=='sim')render()}
+
+/* ---------- SIMULATOR (schematic editor + transient solver) ---------- */
+const SY={
+bat:{n:'Battery',u:'V',v:9,d:'M-40 0H-6M-6-14V14M6-7V7M6 0H40',p:[[-40,0,'+'],[40,0,'−']]},
+res:{n:'Resistor',u:'Ω',v:330,d:'M-40 0H-24L-20-8L-12 8L-4-8L4 8L12-8L20 8L24 0H40',p:[[-40,0,'1'],[40,0,'2']]},
+cap:{n:'Capacitor',u:'µF',v:470,d:'M-40 0H-6M-6-14V14M6-14V14M6 0H40',p:[[-40,0,'1'],[40,0,'2']]},
+ind:{n:'Inductor',d:'M-40 0H-24a6 6 0 0 1 12 0a6 6 0 0 1 12 0a6 6 0 0 1 12 0a6 6 0 0 1 12 0H40',p:[[-40,0,'1'],[40,0,'2']]},
+dio:{n:'Diode',d:'M-40 0H-10M10 0H40M-10-12V12L10 0ZM10-12V12',p:[[-40,0,'A'],[40,0,'K']]},
+led:{n:'LED',d:'M-40 0H-10M10 0H40M-10-12V12L10 0ZM10-12V12M0-16L10-26M8-12L18-22',p:[[-40,0,'A'],[40,0,'K']]},
+sw:{n:'Switch',d:'M-40 0H-16M16 0H40',p:[[-40,0,'1'],[40,0,'2']]},
+lamp:{n:'Lamp',u:'Ω',v:60,d:'M-40 0H-14M14 0H40M-10-10L10 10M10-10L-10 10',c:[0,0,14],p:[[-40,0,'1'],[40,0,'2']]},
+npn:{n:'NPN Transistor',d:'M-40 0H-6M-6-16V16M-6-6L20-20V-40M-6 6L20 20V40M12 14L20 20L10 22',c:[4,0,26],p:[[-40,0,'B'],[20,-40,'C'],[20,40,'E']]},
+opamp:{n:'Op-Amp',d:'M-24-34V34L30 0ZM-40-14H-24M-40 14H-24M30 0H40M-20-14h8M-16-18v8M-20 14h8',p:[[-40,-14,'+'],[-40,14,'−'],[40,0,'OUT']]},
+gnd:{n:'Ground',d:'M0-20V0M-14 0H14M-9 6H9M-4 12H4',p:[[0,-20,'']]},
+uno:{n:'Arduino Uno',d:'M-60-40H60V40H-60Z',p:[[60,-20,'D13'],[60,0,'5V'],[60,20,'GND']]}};
+const TY=SY,PN=t=>SY[t].p,REF={bat:'BT',res:'R',cap:'C',dio:'D',led:'D',sw:'SW',lamp:'LA',npn:'Q',gnd:'#GND',uno:'U'};
+const S={c:[],w:[],sel:null,pend:null,n:1,d:0,run:0,t:0,h:[],pr:0,nv:{}};
+const rot=(x,y,r)=>[[x,y],[-y,x],[-x,-y],[y,-x]][r||0];
+const pinPos=(c,i)=>{const p=SY[c.t].p[i],q=rot(p[0],p[1],c.r);return[c.x+q[0],c.y+q[1]]};
+const pp=k=>{const[a,b]=k.split('.'),c=S.c.find(c=>c.id==a);return c?pinPos(c,+b):[0,0]};
+const hx=t=>t=='uno'||t=='npn'?50:26;
+function add(t,x,y,r){S.c.push({id:S.n++,t,x,y,r:r||0,v:SY[t].v,on:0,ref:REF[t]+(S.c.filter(o=>REF[o.t]==REF[t]).length+1)})}
+function addC(t){const n=S.c.length;add(t,100+n%5*140,100+Math.floor(n/5)*120);S.sel=S.n-1;info();render()}
+function del(id){S.c=S.c.filter(c=>c.id!=id);S.w=S.w.filter(w=>!w.slice(0,2).some(k=>k.startsWith(id+'.')));S.sel=null;info()}
+const delSel=()=>{if(S.sel){del(S.sel);render()}},rotSel=()=>{const c=S.c.find(c=>c.id==S.sel);if(c){c.r=((c.r||0)+1)%4;render()}};
+function resetSim(){S.t=0;S.h=[];S.nv={};S.c.forEach(c=>{c.vp=0;c.cd=0;c.burn=0;c.V=c.I=c.Ic=null});render();scope()}
+function loadEx(p){stopAll();Object.assign(S,{c:[],w:[],n:1,sel:null,pend:null,t:0,h:[],pr:0,d:0});
+ const X={led:[[['bat',280,280],['res',200,120],['led',360,120],['gnd',320,360]],[['1.0','2.0'],['2.1','3.0'],['1.1','3.1'],['1.1','4.0']],3],
+ uno:[[['uno',140,200],['res',320,180],['led',460,180],['gnd',500,300]],[['1.0','2.0'],['2.1','3.0'],['3.1','4.0'],['1.2','4.0']],3],
+ rc:[[['bat',260,300],['sw',300,140],['res',460,140],['cap',560,260,1],['gnd',300,340]],[['1.0','2.0',1],['2.1','3.0'],['3.1','4.0'],['4.1','1.1'],['1.1','5.0']],4]}[p];
+ if(X){X[0].forEach(a=>add(...a));S.w=X[1];S.pr=X[2];if(p=='rc')S.c[1].on=1}info();resetSim()}
+function setV(id,v){const c=S.c.find(c=>c.id==id);c.v=Math.max(1,+v||1);render()}
+$('#pal').innerHTML='<b>Parts</b>'+['bat','res','cap','dio','led','sw','lamp','npn','gnd','uno'].map(t=>`<button onclick="addC('${t}')">${SY[t].n}</button>`).join('');
+
+function solve(dt){dt=dt||.001;
+ if(!S.c.length)return;
+ const par={},f=k=>{par[k]??=k;return par[k]==k?k:(par[k]=f(par[k]))};
+ S.c.forEach(c=>PN(c.t).forEach((_,i)=>f(c.id+'.'+i)));
+ S.w.forEach(w=>{par[f(w[0])]=f(w[1])});
+ const ix={};let N=0;const nd=k=>ix[f(k)]??=N++;
+ S.c.forEach(c=>PN(c.t).forEach((_,i)=>nd(c.id+'.'+i)));
+ const gc=S.c.find(c=>c.t=='gnd'),s=S.c.find(c=>c.t=='bat'||c.t=='uno'),gn=gc?nd(gc.id+'.0'):s?nd(s.id+'.'+(s.t=='uno'?2:1)):0;
+ const VF={dio:.7,led:2,npn:.7};
+ const br=c=>{const t=c.t;
+  if(t=='res'||t=='lamp')return[[0,1,1/c.v,0]];
+  if(t=='sw')return[[0,1,c.on?100:1e-9,0]];
+  if(t=='bat')return[[0,1,2,2*c.v]];
+  if(t=='cap'){const g=c.v*1e-6/dt;return[[0,1,g,g*(c.vp||0)]]}
+  if(t=='dio')return[c.cd?[0,1,.5,.35]:[0,1,1e-9,0]];
+  if(t=='led')return[c.cd&&!c.burn?[0,1,.05,.1]:[0,1,1e-9,0]];
+  if(t=='npn')return[c.cd?[0,2,.1,.07]:[0,2,1e-9,0],[1,2,c.cd?.2:1e-9,0]];
+  if(t=='uno')return[[0,2,.04,S.d?.2:0],[1,2,2,10]];
+  return[]};
+ for(let it=0;it<6;it++){
+  const A=Array.from({length:N},()=>Array(N+1).fill(0));let ch=0;
+  const E=[];S.c.forEach(c=>br(c).forEach((b,k)=>E.push({c,k,a:nd(c.id+'.'+b[0]),b:nd(c.id+'.'+b[1]),g:b[2],j:b[3]})));
+  E.forEach(({a,b,g,j})=>{A[a][a]+=g;A[b][b]+=g;A[a][b]-=g;A[b][a]-=g;A[a][N]+=j;A[b][N]-=j});
+  for(let i=0;i<N;i++)A[i][i]+=1e-9;
+  A[gn]=A[gn].map((_,k)=>k==gn?1:0);
+  for(let i=0;i<N;i++){let p=i;for(let r=i+1;r<N;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;[A[i],A[p]]=[A[p],A[i]];
+   for(let r=0;r<N;r++)if(r!=i){const m=A[r][i]/A[i][i];if(m)for(let k=i;k<=N;k++)A[r][k]-=m*A[i][k]}}
+  const V=A.map((r,i)=>r[N]/r[i]);
+  E.forEach(({c,k,a,b,g,j})=>{const d=V[a]-V[b],I=g*d-j;
+   if(k==1){c.Ic=I;return}
+   c.V=d;c.I=I;
+   if(VF[c.t]){if(c.cd&&I<0){c.cd=0;ch=1}else if(!c.cd&&d>VF[c.t]){c.cd=1;ch=1}if(c.t=='led'&&c.cd&&I>.04)c.burn=1}});
+  S.nv={};S.c.forEach(c=>PN(c.t).forEach((_,i)=>S.nv[c.id+'.'+i]=V[nd(c.id+'.'+i)]));
+  if(!ch)break}
+}
+function tick(){for(let i=0;i<30;i++){solve(.001);S.c.forEach(c=>{if(c.t=='cap')c.vp=c.V});S.t+=.001}
+ const p=S.c.find(c=>c.id==S.pr);if(p){S.h.push([p.V||0,(p.t=='npn'?p.Ic:p.I)||0]);if(S.h.length>300)S.h.shift()}
+ render();scope()}
+function scope(){const cn=$('#sc'),g=cn.getContext('2d'),w=cn.width,h=cn.height;g.fillStyle='#050505';g.fillRect(0,0,w,h);g.strokeStyle='#222';for(let i=1;i<4;i++){g.beginPath();g.moveTo(0,i*h/4);g.lineTo(w,i*h/4);g.stroke()}
+ const H=S.h;if(H.length<2)return;const mv=Math.max(1,...H.map(x=>Math.abs(x[0]))),mi=Math.max(1e-3,...H.map(x=>Math.abs(x[1])));
+ [[0,'#ff1f3d',mv],[1,'#fff',mi]].forEach(([k,col,m])=>{g.strokeStyle=col;g.beginPath();H.forEach((x,i)=>{const X=i/299*w,Y=h/2-x[k]/m*(h/2-6);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke()});
+ g.font='10px monospace';g.fillStyle='#ff1f3d';g.fillText('V ±'+mv.toFixed(1)+' V',4,11);g.fillStyle='#fff';g.fillText('I ±'+(mi*1000).toFixed(1)+' mA',4,23)}
+const wp=w=>{const p=pp(w[0]),q=pp(w[1]);return w[2]?`M${p[0]} ${p[1]}L${p[0]} ${q[1]}L${q[0]} ${q[1]}`:`M${p[0]} ${p[1]}L${q[0]} ${p[1]}L${q[0]} ${q[1]}`};
+const SC='stroke="#ff5c6c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+function render(){
+ let h='<defs><pattern id="gp" width="20" height="20" patternUnits="userSpaceOnUse"><circle r="1" fill="#3a3a3a"/></pattern></defs><rect width="800" height="500" fill="url(#gp)"/>';
+ const live=S.t>0,cnt={};
+ S.w.forEach((w,i)=>{const v=S.nv[w[0]],col=live&&v!=null?`hsl(140,70%,${28+Math.min(1,Math.abs(v)/9)*38}%)`:'#3ddc84';
+  h+=`<path d="${wp(w)}" stroke="${col}" stroke-width="3" fill="none" stroke-linejoin="round"/><path d="${wp(w)}" data-w="${i}" stroke="#0000" stroke-width="12" fill="none"/>`;
+  w.slice(0,2).forEach(k=>cnt[k]=(cnt[k]||0)+1)});
+ Object.keys(cnt).forEach(k=>{if(cnt[k]>1){const p=pp(k);h+=`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#3ddc84"/>`}});
+ S.c.forEach(c=>{const t=c.t,y=hx(t),sel=S.sel==c.id,hw=t=='uno'?55:30,lit=t=='led'||t=='lamp',col=t=='led'?'#ff1f3d':'#ffd54a';
+  const b=live&&lit?(t=='led'?(c.burn?0:Math.min(1,Math.max(0,c.I/.015))):Math.min(1,Math.max(0,c.V*c.I))):0;
+  const cc=SY[t].c,d=SY[t].d+(t=='sw'?(c.on?'M-16 0L16 0':'M-16 0L14-14'):'');
+  h+=`<g data-id="${c.id}" transform="translate(${c.x},${c.y}) rotate(${(c.r||0)*90})"><rect x="${-hw}" y="${-y}" width="${2*hw}" height="${2*y}" fill="#0000" ${sel?'stroke="#ff1f3d" stroke-dasharray="4"':''}/>${lit?`<circle r="${t=='led'?16:14}" fill="${col}" fill-opacity="${b}" style="filter:drop-shadow(0 0 ${b*16}px ${col})"/>`:''}${cc?`<circle cx="${cc[0]}" cy="${cc[1]}" r="${cc[2]}" ${SC}/>`:''}<path d="${d}" ${SC} ${c.burn?'stroke="#666"':''}/></g>`;
+  if(t=='uno')h+=`<text x="${c.x}" y="${c.y+4}" style="fill:#ff5c6c;font-size:14px">ARDUINO UNO</text>`;
+  const rd=live&&c.V!=null&&t!='gnd'&&t!='uno'?`${Math.abs(c.V).toFixed(2)}V ${(Math.abs(t=='npn'?c.Ic:c.I)*1000).toFixed(1)}mA`:t=='sw'?(c.on?'closed':'open'):c.v!=null?c.v+SY[t].u:'';
+  if(t!='gnd')h+=`<text x="${c.x}" y="${c.y-y-6}" style="fill:#ffd1d6;font-size:12px;font-weight:700">${c.ref}${c.burn?' 🔥':''}</text><text x="${c.x}" y="${c.y+y+16}" style="fill:#9a9a9a;font-size:11px">${rd}</text>`});
+ S.c.forEach(c=>PN(c.t).forEach((q,i)=>{const[x,y]=pinPos(c,i),k=c.id+'.'+i,a=Math.abs(q[0])>=Math.abs(q[1])?[Math.sign(q[0]),0]:[0,Math.sign(q[1])],o=rot(a[0],a[1],c.r);
+  h+=`<circle data-pin="${k}" cx="${x}" cy="${y}" r="6" fill="${S.pend==k?'#ff1f3d':'#ff1f3d22'}" stroke="#ff1f3d" style="cursor:crosshair"/>`;
+  if(q[2]&&c.t!='uno')h+=`<text x="${x+o[0]*13}" y="${y+o[1]*13+4}" style="fill:#ff9aa5;font-size:10px">${q[2]}</text>`;
+  if(q[2]&&c.t=='uno')h+=`<text x="${x-22}" y="${y+4}" style="fill:#ff9aa5;font-size:10px">${q[2]}</text>`}));
+ $('#cv').innerHTML=h;$('#tm').textContent='t = '+S.t.toFixed(3)+' s'}
+function info(){const c=S.c.find(c=>c.id==S.sel);if(c)S.pr=c.id;$('#inf').innerHTML=c?`<b>${c.ref}</b> · ${SY[c.t].n}<br>${c.v!=null?`<label>Value (${SY[c.t].u})<input type="number" min="1" value="${c.v}" oninput="setV(${c.id},this.value)"></label>`:''}${c.t=='sw'?'Click the switch to open/close it.<br>':''}<small>The scope probes the selected part.</small><br><button onclick="rotSel()">↻ Rotate</button> <button onclick="delSel()">Delete</button>`:'<b>Tips</b><br>Click a part to select it and drag to move. Click one pin, then another, to wire (orthogonal, KiCad style). R rotates, Del deletes, double-click a wire to remove it.'}
+const cv=$('#cv');let dr=null;
+const pt=e=>{const p=cv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(cv.getScreenCTM().inverse());return[q.x,q.y]};
+cv.addEventListener('pointerdown',e=>{const pin=e.target.dataset.pin;
+ if(pin){if(!S.pend)S.pend=pin;else{if(S.pend!=pin)S.w.push([S.pend,pin]);S.pend=null}render();return}
+ const g=e.target.closest('[data-id]');
+ if(g){const c=S.c.find(c=>c.id==g.dataset.id),[x,y]=pt(e);S.sel=c.id;dr={c,dx:x-c.x,dy:y-c.y,m:0};info();render()}
+ else{S.sel=null;S.pend=null;info();render()}});
+addEventListener('pointermove',e=>{if(!dr)return;const[x,y]=pt(e);dr.m=1;dr.c.x=Math.round((x-dr.dx)/20)*20;dr.c.y=Math.round((y-dr.dy)/20)*20;render()});
+addEventListener('pointerup',()=>{if(dr&&!dr.m&&dr.c.t=='sw'){dr.c.on^=1;render()}dr=null});
+cv.addEventListener('dblclick',e=>{const w=e.target.dataset.w,g=e.target.closest('[data-id]');if(w!=null)S.w.splice(+w,1);else if(g)del(+g.dataset.id);render()});
+addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||$('#sim').classList.contains('hide'))return;if(e.key=='r'||e.key=='R')rotSel();if(e.key=='Delete'||e.key=='Backspace')delSel();if(e.key=='Escape'){S.pend=null;render()}});
+function toggleSim(){S.run?stopAll():startSim()}
+function startSim(){if(S.run)return;S.run=1;S.tmr=setInterval(tick,33);$('#sb').textContent='⏸ Pause'}
+function stopAll(){rid++;S.run=0;S.d=0;clearInterval(S.tmr);$('#sb').textContent='▶ Run';render()}
+const SYM={Resistor:'res',Capacitor:'cap',Inductor:'ind',Diode:'dio',LED:'led','Transistor (BJT)':'npn','Op-Amp':'opamp','Arduino Uno':'uno'};
+function symSvg(n){const t=SYM[n];if(!t)return'';const s=SY[t],cc=s.c;return`<svg viewBox="-75 -50 150 100" width="150" height="100" style="float:right;background:#0b0b0b;border:1px solid #2c2c2c;border-radius:8px">${cc?`<circle cx="${cc[0]}" cy="${cc[1]}" r="${cc[2]}" ${SC}/>`:''}<path d="${s.d}" ${SC} transform="${t=='uno'?'scale(.7)':''}"/>${s.p.map(q=>{const k=t=='uno'?.7:1,x=q[0]*k,y=q[1]*k;return`<circle cx="${x}" cy="${y}" r="3" fill="#ff1f3d"/><text x="${x+(x<0?-10:10)*(Math.abs(x)>=Math.abs(y)?1:0.8)}" y="${y+(Math.abs(x)>=Math.abs(y)?4:(y<0?-6:12))}" style="fill:#ff9aa5;font-size:10px">${q[2]}</text>`}).join('')}</svg>`}
+/* ---------- CODE (mini Arduino interpreter) ---------- */
+let rid=0;
+const out=s=>{const e=$('#ser');e.textContent=(e.textContent+s+'\n').slice(-1500);e.scrollTop=1e9};
+function runCode(){stopAll();const src=$('#code').value;$('#ser').textContent='';
+ const body=n=>{const i=src.search(new RegExp('void\\s+'+n+'\\s*\\(\\s*\\)\\s*\\{'));if(i<0)return'';let d=0,k=src.indexOf('{',i);const j=k;for(;k<src.length;k++){if(src[k]=='{')d++;if(src[k]=='}'&&!--d)break}return src.slice(j+1,k)};
+ const tok=s=>[...s.matchAll(/digitalWrite\(\s*13\s*,\s*(HIGH|LOW)\s*\)|delay\(\s*(\d+)\s*\)|Serial\.print(?:ln)?\(\s*"([^"]*)"\s*\)/g)].map(m=>m[1]?['w',m[1]=='HIGH']:m[2]?['d',+m[2]]:['p',m[3]]);
+ if(!/void\s+loop/.test(src)){out('Error: loop() not found');return}
+ startSim();const id=++rid,sl=ms=>new Promise(r=>setTimeout(r,ms));
+ (async()=>{const ex=async t=>{for(const[k,v]of t){if(id!=rid)return;if(k=='w'){S.d=v;render()}else if(k=='d')await sl(v);else out(v)}};
+  await ex(tok(body('setup')));const L=tok(body('loop'));
+  while(id==rid){await ex(L);await sl(L.some(t=>t[0]=='d')?0:30)}})()}
+/* ---------- TUTORIALS ---------- */
+const T=[
+["Resistor","Passive","Limits current and divides voltage (V = I×R).","2 non-polar pins, placed in series with the load","Current limiting, voltage dividers, pull-ups","Cheap, stable, simple","Wastes power as heat","led"],
+["Capacitor","Passive","Stores charge; blocks DC and passes AC.","2 pins (electrolytic is polarized: mind + / −)","Filtering, timing, decoupling","Fast charge/discharge, compact","Leakage, voltage limits, polarity risk",""],
+["Inductor","Passive","Stores energy in a magnetic field and resists current change.","2 pins in series with the signal path","Filters, SMPS, chokes, RF tuning","No moving parts, efficient","Bulky, magnetic interference",""],
+["Diode","Active","Lets current flow one way only (anode to cathode).","Anode (+), cathode (band side)","Rectifiers, protection, clamping","Simple and fast","About 0.7 V drop, reverse breakdown","led"],
+["LED","Active","Diode that emits light when forward biased (about 2 V).","Anode (long leg) via resistor, cathode to GND","Indicators, displays, lighting","Efficient, long life","Needs a series resistor, polarity-sensitive","led"],
+["Transistor (BJT)","Active","Current-controlled switch/amplifier: base, collector, emitter.","B via resistor, C to load, E to GND (NPN)","Switching loads, amplifiers","High gain, cheap","Needs base current, gets hot",""],
+["MOSFET","Active","Voltage-controlled switch: gate, drain, source.","G to MCU pin, D to load, S to GND","Motor drivers, power switching","Very low on-resistance, fast","Static sensitive, needs proper gate drive",""],
+["Op-Amp","IC","High-gain differential amplifier (+, −, output, supply).","Inverting/non-inverting inputs, V+ and V−","Amplifiers, filters, comparators","Versatile, precise","Needs feedback, supply limits",""],
+["Relay","Electromechanical","Coil-driven switch that isolates low and high power circuits.","Coil pins, COM / NO / NC contacts","Mains switching, automation","Isolation, high current","Slow, wears out, needs flyback diode",""],
+["Ultrasonic Sensor","Sensor","HC-SR04 measures distance from the echo time of sound.","VCC, TRIG, ECHO, GND","Obstacle avoidance, level sensing","Cheap, non-contact","Soft or angled surfaces confuse it",""],
+["ESP32","Microcontroller","Dual-core MCU with built-in Wi-Fi and Bluetooth.","3.3 V GPIOs, ADC, I2C, SPI, UART","IoT, wireless sensors, robotics","Powerful, low cost","3.3 V logic, higher power draw","uno"],
+["Arduino Uno","Microcontroller","ATmega328P board programmed in C++ (setup/loop).","D0–D13 digital, A0–A5 analog, 5 V, GND","Learning, prototyping, automation","Easy, huge community","Limited memory, no Wi-Fi","uno"]];
+function rt(){const q=$('#ts').value.toLowerCase(),p=P();$('#tlist').innerHTML=T.filter(t=>(t[0]+t[1]).toLowerCase().includes(q)).map(t=>{const k=encodeURIComponent(t[0]);
+ return `<details class="card"><summary>${t[0]} <small class="r">${t[1]}</small> ${p.l.includes(t[0])?'✅':''}</summary>${symSvg(t[0])}<p>${t[2]}</p><p><b>Connections:</b> ${t[3]}</p><p><b>Uses:</b> ${t[4]}</p><p>👍 ${t[5]}<br>👎 ${t[6]}</p><p><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Special:Search?search=${k}">Wikipedia</a> · <a target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${k}+working+explained">YouTube videos</a> · <a target="_blank" rel="noopener" href="https://www.google.com/search?q=${k}+tutorial+allaboutcircuits">Tutorials</a></p><button onclick="learn('${t[0]}')">Mark learned</button> ${t[7]?`<button onclick="tryIt('${t[7]}')">Try in simulator</button>`:''}</details>`}).join('')}
+function learn(n){const p=P();if(!p.l.includes(n)){p.l.push(n);p.xp+=10;SP(p)}rt()}
+function tryIt(p){go2('sim');loadEx(p)}
+function ext(){const k=encodeURIComponent($('#xs').value.trim());if(!k)return;$('#xr').innerHTML=`<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Special:Search?search=${k}">Wikipedia</a> · <a target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${k}+explained">YouTube</a> · <a target="_blank" rel="noopener" href="https://www.google.com/search?q=${k}+circuit+diagram+uses">Circuit diagram &amp; uses</a>`}
+/* ---------- QUIZ ---------- */
+const Q=[["Unit of capacitance?",["Henry","Farad","Ohm"],1],["Which gate outputs 1 only when both inputs are 1?",["OR","XOR","AND"],2],["A diode conducts when it is…",["Reverse biased","Forward biased","Open"],1],["Ohm’s law is…",["V = I / R","V = I × R","I = V × R"],1],["Which sensor measures distance using sound?",["LDR","Ultrasonic","Thermistor"],1],["A transistor can act as…",["Switch or amplifier","Only a resistor","Only a battery"],0],["ESP32 has built-in…",["Only analog audio","Nothing wireless","Wi-Fi and Bluetooth"],2],["A fuse protects against…",["Low light","Overcurrent","Sound"],1]];
+let qi=0,sc=0,qt,tt;
+function qs(){qi=0;sc=0;qn()}
+function qn(){clearInterval(qt);const b=$('#qb');
+ if(qi>=Q.length){const p=P();p.q=Math.max(p.q,sc);p.xp+=sc*10;SP(p);b.innerHTML=`<h2>Score: ${sc}/${Q.length}</h2><p>Best: ${p.q}/${Q.length} · +${sc*10} XP</p><button onclick="qs()">Play again</button>`;return}
+ tt=15;const q=Q[qi];b.innerHTML=`<p class="r">Question ${qi+1}/${Q.length} · <span id="tmr">15</span>s</p><h3>${q[0]}</h3>`+q[1].map((o,i)=>`<button style="display:block;width:100%;margin:6px 0" onclick="qa(${i})">${o}</button>`).join('');
+ qt=setInterval(()=>{$('#tmr').textContent=--tt;if(tt<=0){qi++;qn()}},1000)}
+function qa(i){if(i==Q[qi][2])sc++;qi++;qn()}
+/* ---------- AI HELP (offline rule-based) ---------- */
+const esc=s=>s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+function analyze(){if(!S.c.length)return'Your canvas is empty. Add components or load an example.';const w=S.run;S.run=1;solve();S.run=w;const m=[];
+ if(!S.c.some(c=>c.t=='bat'||c.t=='uno'))m.push('No power source (battery or Arduino).');
+ S.c.forEach(c=>{PN(c.t).forEach((_,i)=>{if(!S.w.some(x=>x.includes(c.id+'.'+i)))m.push(`${TY[c.t].n} #${c.id}: pin ${i+1} is not connected.`)});
+  if(c.t=='led'&&(c.burn||c.I>.03))m.push(`LED #${c.id} would burn out. Add a series resistor: R = (Vs − 2) / 0.015.`)});
+ return m.length?m.join('<br>'):'No obvious problems found. Press Simulate to check voltages and currents.'}
+function ans(q){
+ if(/analy|my circuit|check/.test(q))return analyze();
+ if(/resistor/.test(q)&&/led/.test(q))return'Use R = (Vs − Vf) / I. Example: (9 V − 2 V) / 15 mA ≈ 470 Ω (use the next standard value up).';
+ if(/ohm/.test(q))return'Ohm’s law: V = I × R. Power: P = V × I. Example: 9 V across 330 Ω gives about 27 mA.';
+ const t=T.find(t=>new RegExp('\\b'+t[0].toLowerCase().split(' ')[0]).test(q));
+ if(t)return`<b>${t[0]}</b>: ${t[2]} Uses: ${t[4]}. Pros: ${t[5]}. Cons: ${t[6]}.`;
+ return'Try asking about a component (resistor, diode, relay, ESP32…), “Ohm’s law”, or press Analyze my circuit.'}
+function ask(q){q=(q||$('#q').value).trim();if(!q)return;$('#q').value='';const c=$('#chat');c.innerHTML+=`<div class="bub u">${esc(q)}</div><div class="bub a">${ans(q.toLowerCase())}</div>`;c.scrollTop=1e9}
+/* ---------- DASHBOARD ---------- */
+function rd(){const p=P(),pc=Math.round(p.l.length/T.length*100);$('#dsh').innerHTML=`<div class="grid"><div class="card"><h3>Level ${1+Math.floor(p.xp/50)}</h3>${p.xp} XP</div><div class="card"><h3>${p.l.length}/${T.length}</h3>Tutorials learned</div><div class="card"><h3>${p.q}/${Q.length}</h3>Best quiz score</div><div class="card"><h3>${p.s}</h3>Simulations run</div></div><div class="card">Learning progress: ${pc}%<div class="bar"><i style="width:${pc}%"></i></div></div>`}
+info();scope();
+</script></body></html>
